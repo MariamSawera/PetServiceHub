@@ -90,21 +90,9 @@ export const logout = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  try {
-    const token = req.cookies?.jwt;
-    if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json(user);
-  } catch (error) {
-    console.error(error);
-    return res.status(401).json({ message: "Invalid token" });
+  if (!req.user) {
+    return res.status(401).json({ message: "Authentication required" });
   }
+
+  return res.json(req.user);
 };
