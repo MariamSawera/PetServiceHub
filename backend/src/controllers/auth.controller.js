@@ -35,7 +35,7 @@ export const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    generateToken(user._id, res);
+    generateToken(user, res);
 
     return res.status(201).json({
       _id: user._id,
@@ -67,7 +67,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    generateToken(user._id, res);
+    generateToken(user, res);
     return res.json({
       _id: user._id,
       name: user.name,
