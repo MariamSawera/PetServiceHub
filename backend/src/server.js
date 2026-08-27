@@ -4,6 +4,7 @@ import dotenv from "dotenv"
 import { connectDB } from './config/db.js';
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
+import passport from "./config/passport.js";
 
 
 
@@ -13,6 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use(cors({
   origin: "http://localhost:5173", // frontend URL

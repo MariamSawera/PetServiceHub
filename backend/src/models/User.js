@@ -15,14 +15,40 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
       minlength: 6,
+      // Not required because Google users won't have a password
+      required: false,
     },
 
     role: {
       type: String,
       enum: ["user", "provider", "admin"],
       default: "user",
+    },
+
+    // Email verification
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationToken: {
+      type: String,
+    },
+
+    verificationTokenExpires: {
+      type: Date,
+    },
+
+    // Google OAuth
+    googleId: {
+      type: String,
+    },
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
     },
   },
   {
