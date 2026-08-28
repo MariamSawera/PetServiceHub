@@ -1,18 +1,17 @@
-import { useEffect } from "react";
-import api from "./lib/axios.js";
+import { Routes, Route } from "react-router-dom";
 
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
-  useEffect(() => {
-    api.get("/api/health")
-      .then(res => console.log(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-  return <h1 className="text-blue-500">Frontend running ⚛️</h1>;
-  <button className="btn btn-primary">hello</button>
-  
-
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+    </Routes>
+  );
 }
 
 export default App;
