@@ -176,33 +176,15 @@ export const googleCallback = (req, res, next) => {
     (err, user) => {
       if (err) {
         console.error("Google authentication error:", err);
-
-        return res.status(500).json({
-          message: "Google authentication failed",
-          error: err.message,
-        });
+        return res.redirect("http://localhost:5173/login?error=google_failed");
       }
 
       if (!user) {
-        return res.status(401).json({
-          message: "Google authentication failed",
-        });
+        return res.redirect("http://localhost:5173/login?error=google_failed");
       }
 
-      // Generate JWT cookie
       generateToken(user, res);
-
-      return res.json({
-        message: "Google login successful",
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          isVerified: user.isVerified,
-          authProvider: user.authProvider,
-        },
-      });
+      return res.redirect("http://localhost:5173");
     }
   )(req, res, next);
 };
