@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { User, Mail, Lock, Phone, Eye, EyeOff, PawPrint } from 'lucide-react';
 import { TrustRow, PetImagePanel } from './AuthShared';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignupForm() {
+  const navigate = useNavigate();
+  const { signup } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -19,18 +25,40 @@ export default function SignupForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
     if (!form.agreed) {
-      alert('Please agree to the Terms of Service and Privacy Policy.');
+      setError('Please agree to the Terms of Service and Privacy Policy.');
       return;
     }
+
     if (form.password !== form.confirmPassword) {
-      alert('Passwords do not match.');
+      setError('Passwords do not match.');
       return;
     }
-    // TODO: call your signup API here
-    console.log('Signup payload:', form);
+
+    try {
+      setIsSubmitting(true);
+      await signup({
+        name: form.fullName,
+        email: form.email,
+        password: form.password,
+      });
+
+      alert('Signup successful! Please verify your email before logging in.');
+      navigate('/login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -42,6 +70,12 @@ export default function SignupForm() {
         <p className="pc-subtitle">Join PawCare and give your pets the best care.</p>
 
         <form onSubmit={handleSubmit} noValidate>
+          {error && (
+            <div className="pc-form-error" style={{ marginBottom: '14px', color: '#dc2626', fontSize: '13px', fontWeight: 600 }}>
+              {error}
+            </div>
+          )}
+
           <div className="pc-field">
             <label className="pc-label" htmlFor="fullName">Full Name</label>
             <div className="pc-input-wrap">
@@ -148,8 +182,8 @@ export default function SignupForm() {
             </span>
           </label>
 
-          <button type="submit" className="pc-submit-btn">
-            Create Account
+          <button type="submit" className="pc-submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating account...' : 'Create Account'}
             <PawPrint size={16} fill="currentColor" strokeWidth={0} />
           </button>
         </form>
@@ -157,7 +191,13 @@ export default function SignupForm() {
         <div className="pc-divider">or sign up with</div>
 
         <div className="pc-social-row">
-          <button type="button" className="pc-social-btn" onClick={() => console.log('google signup')}>
+          <button
+            type="button"
+            className="pc-social-btn"
+            onClick={() => {
+              window.location.href = 'http://localhost:5000/api/auth/google';
+            }}
+          >
             <GoogleIcon /> Google
           </button>
           <button type="button" className="pc-social-btn" onClick={() => console.log('facebook signup')}>

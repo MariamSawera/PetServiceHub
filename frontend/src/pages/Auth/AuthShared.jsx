@@ -34,10 +34,9 @@ export function TrustRow() {
 
 /**
  * Right-hand illustration column.
- * Drop your own photo at /public/images/pets-hero.jpg (or pass a different
- * `src`) and it will be used automatically; otherwise a paw placeholder shows.
+ * Keep the default path aligned with the file in /public.
  */
-export function PetImagePanel({ src = '/images/pets-hero.jpg' }) {
+export function PetImagePanel({ src = './images/pets-hero.png' }) {
   return (
     <div className="pc-image-col">
       <div className="pc-image-blob">
@@ -50,6 +49,7 @@ export function PetImagePanel({ src = '/images/pets-hero.jpg' }) {
           alt="Happy cat and dog"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
+            e.currentTarget.parentElement.style.background = '#f8fafc';
           }}
         />
       </div>

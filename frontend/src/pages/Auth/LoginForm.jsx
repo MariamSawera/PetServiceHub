@@ -1,21 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, PawPrint } from 'lucide-react';
 import { TrustRow, PetImagePanel } from './AuthShared';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginForm() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', remember: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'google_failed') {
+      setError('Google login failed. Please try again.');
+    }
+  }, [searchParams]);
 
   const handleChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: call your login API here
-    console.log('Login payload:', form);
+    setError('');
+
+    if (!form.email || !form.password) {
+      setError('Please enter both email and password.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await login(form.email, form.password);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -27,6 +53,12 @@ export default function LoginForm() {
         <p className="pc-subtitle">Log in to continue caring for your pets.</p>
 
         <form onSubmit={handleSubmit} noValidate>
+          {error && (
+            <div className="pc-form-error" style={{ marginBottom: '14px', color: '#dc2626', fontSize: '13px', fontWeight: 600 }}>
+              {error}
+            </div>
+          )}
+
           <div className="pc-field">
             <label className="pc-label" htmlFor="loginEmail">Email Address</label>
             <div className="pc-input-wrap">
@@ -73,8 +105,8 @@ export default function LoginForm() {
             <Link className="pc-link" to="/forgot-password">Forgot password?</Link>
           </div>
 
-          <button type="submit" className="pc-submit-btn">
-            Log In
+          <button type="submit" className="pc-submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Logging in...' : 'Log In'}
             <PawPrint size={16} fill="currentColor" strokeWidth={0} />
           </button>
         </form>
@@ -82,7 +114,13 @@ export default function LoginForm() {
         <div className="pc-divider">or continue with</div>
 
         <div className="pc-social-row">
-          <button type="button" className="pc-social-btn" onClick={() => console.log('google login')}>
+          <button
+            type="button"
+            className="pc-social-btn"
+            onClick={() => {
+              window.location.href = 'http://localhost:5000/api/auth/google';
+            }}
+          >
             <GoogleIcon /> Google
           </button>
           <button type="button" className="pc-social-btn" onClick={() => console.log('facebook login')}>

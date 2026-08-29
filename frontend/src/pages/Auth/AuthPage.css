@@ -127,7 +127,7 @@
 
 .pc-input-wrap input {
   width: 100%;
-  padding: 12px 14px 12px 42px;
+  padding: 12px 42px 12px 42px;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   font-size: 14.5px;
@@ -150,14 +150,19 @@
 .pc-eye-btn {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   left: auto;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 16px;
   cursor: pointer;
   color: #94a3b8;
   display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: auto;
+  z-index: 1;
 }
 
 .pc-eye-btn:hover {
@@ -185,11 +190,26 @@
 
 .pc-checkbox-row input[type='checkbox'],
 .pc-row-between input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  accent-color: #0d9488;
   margin-top: 2px;
   cursor: pointer;
+  border: 1.5px solid #0d9488;
+  border-radius: 4px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.7 3.3a1 1 0 0 1 0 1.4L6.8 11.7a1 1 0 0 1-1.4 0L2.3 8.8a1 1 0 0 1 1.4-1.4l2.8 2.8 6.1-6.1a1 1 0 0 1 1.4 0Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pc-checkbox-row input[type='checkbox']:checked,
+.pc-row-between input[type='checkbox']:checked {
+  background-color: #0d9488;
+  border-color: #0d9488;
 }
 
 .pc-link {
@@ -317,7 +337,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
-  background: linear-gradient(160deg, #ccfbf1 0%, #f0fdfa 60%);
+  background: #D5F1F0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,17 +345,17 @@
 }
 
 .pc-image-blob img {
-  width: 92%;
-  height: 92%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 50%;
-}
+  display: block;
+border-radius: 40% 60% 58% 42% / 50% 44% 56% 50%;}
 
 .pc-image-blob .pc-placeholder-icon {
   color: #5eead4;
 }
 
-.pc-chat-bubble {
+/* .pc-chat-bubble {
   position: absolute;
   top: 6%;
   left: 8%;
@@ -356,7 +376,7 @@
   right: 4%;
   color: #ccfbf1;
   opacity: 0.9;
-}
+} */
 
 /* ---- Responsive ---- */
 @media (max-width: 860px) {

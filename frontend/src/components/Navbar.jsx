@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { PawPrint, Menu, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -11,14 +12,21 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-100">
+    <header className="sticky top-0 z-50 bg-white backdrop-blur border-b border-slate-100">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-slate-900">
-          <PawPrint size={24} className="text-teal-600" fill="currentColor" strokeWidth={0} />
+<Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-[#0B8F87]">   
+       <PawPrint size={24} className="text-teal-600" fill="currentColor" strokeWidth={0} />
           PawCare
         </Link>
 
@@ -39,14 +47,27 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* Desktop auth button */}
+        {/* Desktop auth action */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/login"
-            className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
-          >
-            Log in
-          </Link>
+          {user ? (
+            <>
+              <span className="text-sm font-semibold text-slate-700">Hi, {user.name || 'User'}</span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+            >
+              Log in
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu toggle */}
@@ -81,13 +102,29 @@ export default function Navbar() {
           </nav>
 
           <div className="mt-4 flex flex-col gap-3">
-            <Link
-              to="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-lg bg-teal-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
-            >
-              Log in
-            </Link>
+            {user ? (
+              <>
+                <div className="text-sm font-semibold text-slate-700">Hi, {user.name || 'User'}</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    handleLogout();
+                  }}
+                  className="rounded-lg border border-slate-200 px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="rounded-lg bg-teal-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
+              >
+                Log in
+              </Link>
+            )}
           </div>
         </div>
       )}
