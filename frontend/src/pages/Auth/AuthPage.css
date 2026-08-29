@@ -1,0 +1,379 @@
+/* ===== PawCare Auth Pages ===== */
+
+.pc-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7f9f8;
+  padding: 32px 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.pc-auth-card {
+  width: 100%;
+  max-width: 960px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(15, 23, 22, 0.06);
+  padding: 40px 48px;
+  position: relative;
+}
+
+/* ---- Top bar: logo + toggle ---- */
+.pc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.pc-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pc-logo-mark {
+  color: #0d9488;
+  display: flex;
+}
+
+.pc-toggle-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pc-toggle-btn {
+  border: 1.5px solid #0d9488;
+  color: #0d9488;
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pc-toggle-btn:hover {
+  background: #0d9488;
+  color: #fff;
+}
+
+/* ---- Two column body ---- */
+.pc-body {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.pc-form-col h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.pc-form-col h1 span {
+  color: #0d9488;
+}
+
+.pc-subtitle {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0 0 28px 0;
+  line-height: 1.5;
+}
+
+/* ---- Fields ---- */
+.pc-field {
+  margin-bottom: 18px;
+}
+
+.pc-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pc-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.pc-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pc-input-wrap svg {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.pc-input-wrap input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14.5px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.pc-input-wrap input::placeholder {
+  color: #94a3b8;
+}
+
+.pc-input-wrap input:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.pc-eye-btn {
+  position: absolute;
+  right: 12px;
+  left: auto;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  pointer-events: auto;
+}
+
+.pc-eye-btn:hover {
+  color: #475569;
+}
+
+/* ---- Row helpers ---- */
+.pc-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 13.5px;
+}
+
+.pc-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #475569;
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+
+.pc-checkbox-row input[type='checkbox'],
+.pc-row-between input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  accent-color: #0d9488;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.pc-link {
+  color: #0d9488;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pc-link:hover {
+  text-decoration: underline;
+}
+
+.pc-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+}
+
+/* ---- Buttons ---- */
+.pc-submit-btn {
+  width: 100%;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.pc-submit-btn:hover {
+  background: #0b7a70;
+}
+
+.pc-submit-btn:active {
+  transform: scale(0.99);
+}
+
+.pc-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.pc-divider::before,
+.pc-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.pc-social-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.pc-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  padding: 11px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.pc-social-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+/* ---- Trust badges ---- */
+.pc-trust-row {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid #eef2f1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pc-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.pc-trust-item svg {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+/* ---- Right image column ---- */
+.pc-image-col {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.pc-image-blob {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%;
+  background: linear-gradient(160deg, #ccfbf1 0%, #f0fdfa 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pc-image-blob img {
+  width: 92%;
+  height: 92%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.pc-image-blob .pc-placeholder-icon {
+  color: #5eead4;
+}
+
+.pc-chat-bubble {
+  position: absolute;
+  top: 6%;
+  left: 8%;
+  width: 40px;
+  height: 40px;
+  background: #ccfbf1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d9488;
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.18);
+}
+
+.pc-paw-decor {
+  position: absolute;
+  top: 2%;
+  right: 4%;
+  color: #ccfbf1;
+  opacity: 0.9;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+  .pc-auth-card {
+    padding: 28px 24px;
+  }
+  .pc-body {
+    grid-template-columns: 1fr;
+  }
+  .pc-image-col {
+    display: none;
+  }
+  .pc-field-row {
+    grid-template-columns: 1fr;
+  }
+  .pc-trust-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+}
