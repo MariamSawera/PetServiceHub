@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import api from '../lib/axios';
-
-const AuthContext = createContext(null);
+import { useEffect, useState } from 'react';
+import { AuthContext } from './authContext';
+import { getCurrentUser, login as loginUser, logout as logoutUser, signup as signupUser } from '../services/authApi';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -9,7 +8,7 @@ export function AuthProvider({ children }) {
 
   const fetchUser = async () => {
     try {
-      const { data } = await api.get('/api/auth/me');
+      const { data } = await getCurrentUser();
       setUser(data);
     } catch {
       setUser(null);
@@ -23,18 +22,18 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await api.post('/api/auth/login', { email, password });
+    const { data } = await loginUser(email, password);
     setUser(data);
     return data;
   };
 
   const signup = async (payload) => {
-    const { data } = await api.post('/api/auth/signup', payload);
+    const { data } = await signupUser(payload);
     return data;
   };
 
   const logout = async () => {
-    await api.post('/api/auth/logout');
+    await logoutUser();
     setUser(null);
   };
 
@@ -43,14 +42,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
-  return context;
 }

@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { User, Mail, Lock, Phone, Eye, EyeOff, PawPrint } from 'lucide-react';
 import { TrustRow, PetImagePanel } from './AuthShared';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import { googleLoginUrl } from '../services/authApi';
+
+const INPUT_CLASS = 'box-border w-full rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] px-[42px] py-3 text-[14.5px] text-[var(--theme-text)] outline-none transition focus:border-[var(--theme-primary)] focus:ring-[3px] focus:ring-[var(--theme-primary)]/15';
+const PASSWORD_INPUT_CLASS = `${INPUT_CLASS} pr-14`;
+const EYE_BUTTON_CLASS = 'absolute right-2 top-1/2 z-[1] flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-[var(--theme-text-soft)] hover:bg-[var(--theme-primary-pale)] hover:text-[var(--theme-primary)]';
+const CHECKBOX_CLASS = 'mt-1 h-[17px] w-[17px] shrink-0 cursor-pointer appearance-none rounded border border-[var(--theme-border)] bg-[var(--theme-surface)] checked:border-[var(--theme-primary)] checked:bg-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)]/20';
 
 export default function SignupForm() {
   const navigate = useNavigate();
@@ -62,23 +68,23 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="pc-body">
-      <div className="pc-form-col">
-        <h1>
+    <div className="grid items-center gap-10 min-[861px]:grid-cols-[1.1fr_0.9fr]">
+      <div>
+        <h1 className="mb-2 text-[32px] font-extrabold text-[var(--theme-text)]">
           Create <span>your account</span>
         </h1>
-        <p className="pc-subtitle">Join PawCare and give your pets the best care.</p>
+        <p className="mb-7 text-[15px] leading-6 text-[var(--theme-text-muted)]">Join PawCare and give your pets the best care.</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {error && (
-            <div className="pc-form-error" style={{ marginBottom: '14px', color: '#dc2626', fontSize: '13px', fontWeight: 600 }}>
+            <div className="mb-3.5 text-[13px] font-semibold text-red-600">
               {error}
             </div>
           )}
 
-          <div className="pc-field">
-            <label className="pc-label" htmlFor="fullName">Full Name</label>
-            <div className="pc-input-wrap">
+          <div className="mb-[18px]">
+            <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="fullName">Full Name</label>
+            <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
               <User size={18} />
               <input
                 id="fullName"
@@ -86,14 +92,14 @@ export default function SignupForm() {
                 placeholder="Enter your full name"
                 value={form.fullName}
                 onChange={handleChange('fullName')}
-                required
+                required className={INPUT_CLASS}
               />
             </div>
           </div>
 
-          <div className="pc-field">
-            <label className="pc-label" htmlFor="email">Email Address</label>
-            <div className="pc-input-wrap">
+          <div className="mb-[18px]">
+            <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="email">Email Address</label>
+            <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
               <Mail size={18} />
               <input
                 id="email"
@@ -101,15 +107,15 @@ export default function SignupForm() {
                 placeholder="Enter your email"
                 value={form.email}
                 onChange={handleChange('email')}
-                required
+                required className={INPUT_CLASS}
               />
             </div>
           </div>
 
-          <div className="pc-field-row">
-            <div className="pc-field">
-              <label className="pc-label" htmlFor="password">Password</label>
-              <div className="pc-input-wrap">
+          <div className="grid gap-4 min-[861px]:grid-cols-2">
+            <div className="mb-[18px]">
+              <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="password">Password</label>
+              <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
                 <Lock size={18} />
                 <input
                   id="password"
@@ -118,11 +124,11 @@ export default function SignupForm() {
                   value={form.password}
                   onChange={handleChange('password')}
                   required
-                  minLength={8}
+                  minLength={8} className={PASSWORD_INPUT_CLASS}
                 />
                 <button
                   type="button"
-                  className="pc-eye-btn"
+                  className={EYE_BUTTON_CLASS}
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -131,9 +137,9 @@ export default function SignupForm() {
               </div>
             </div>
 
-            <div className="pc-field">
-              <label className="pc-label" htmlFor="confirmPassword">Confirm Password</label>
-              <div className="pc-input-wrap">
+            <div className="mb-[18px]">
+              <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="confirmPassword">Confirm Password</label>
+              <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
                 <Lock size={18} />
                 <input
                   id="confirmPassword"
@@ -141,11 +147,11 @@ export default function SignupForm() {
                   placeholder="Confirm your password"
                   value={form.confirmPassword}
                   onChange={handleChange('confirmPassword')}
-                  required
+                  required className={PASSWORD_INPUT_CLASS}
                 />
                 <button
                   type="button"
-                  className="pc-eye-btn"
+                  className={EYE_BUTTON_CLASS}
                   onClick={() => setShowConfirm((s) => !s)}
                   aria-label={showConfirm ? 'Hide password' : 'Show password'}
                 >
@@ -155,9 +161,9 @@ export default function SignupForm() {
             </div>
           </div>
 
-          <div className="pc-field">
-            <label className="pc-label" htmlFor="phone">Phone Number (Optional)</label>
-            <div className="pc-input-wrap">
+          <div className="mb-[18px]">
+            <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="phone">Phone Number (Optional)</label>
+            <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
               <Phone size={18} />
               <input
                 id="phone"
@@ -165,42 +171,43 @@ export default function SignupForm() {
                 placeholder="Enter your phone number"
                 value={form.phone}
                 onChange={handleChange('phone')}
+                className={INPUT_CLASS}
               />
             </div>
           </div>
 
-          <label className="pc-checkbox-row">
+          <label className="mb-[22px] flex items-start gap-2.5 text-[13.5px] leading-6 text-[var(--theme-text-muted)]">
             <input
               type="checkbox"
               checked={form.agreed}
               onChange={handleChange('agreed')}
-              required
+              required className={CHECKBOX_CLASS}
             />
             <span>
-              I agree to the <a className="pc-link" href="/terms">Terms of Service</a> and{' '}
-              <a className="pc-link" href="/privacy">Privacy Policy</a>
+              I agree to the <a className="font-semibold text-[var(--theme-primary)] hover:underline" href="/terms">Terms of Service</a> and{' '}
+              <a className="font-semibold text-[var(--theme-primary)] hover:underline" href="/privacy">Privacy Policy</a>
             </span>
           </label>
 
-          <button type="submit" className="pc-submit-btn" disabled={isSubmitting}>
+          <button type="submit" className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-[var(--theme-primary)] p-3.5 text-[15.5px] font-bold text-white transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.99]" disabled={isSubmitting}>
             {isSubmitting ? 'Creating account...' : 'Create Account'}
             <PawPrint size={16} fill="currentColor" strokeWidth={0} />
           </button>
         </form>
 
-        <div className="pc-divider">or sign up with</div>
+        <div className="my-[22px] flex items-center gap-3 text-[13px] text-[var(--theme-text-soft)] before:h-px before:flex-1 before:bg-[var(--theme-border)] after:h-px after:flex-1 after:bg-[var(--theme-border)]">or sign up with</div>
 
-        <div className="pc-social-row">
+        <div className="grid grid-cols-2 gap-3.5">
           <button
             type="button"
-            className="pc-social-btn"
+            className="flex cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm font-semibold text-[var(--theme-text-strong)] transition hover:bg-[var(--theme-surface-muted)]"
             onClick={() => {
-              window.location.href = 'http://localhost:5000/api/auth/google';
+              window.location.href = googleLoginUrl;
             }}
           >
             <GoogleIcon /> Google
           </button>
-          <button type="button" className="pc-social-btn" onClick={() => console.log('facebook signup')}>
+          <button type="button" className="flex cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm font-semibold text-[var(--theme-text-strong)] transition hover:bg-[var(--theme-surface-muted)]" onClick={() => console.log('facebook signup')}>
             <FacebookIcon /> Facebook
           </button>
         </div>

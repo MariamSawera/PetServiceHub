@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { PawPrint, Menu, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../features/Auth/context/useAuth';
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },

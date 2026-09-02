@@ -1,0 +1,28 @@
+:root {
+  --theme-bg: #f7f9f8;
+  --theme-surface: #ffffff;
+  --theme-surface-muted: #f8fafc;
+  --theme-text: #0f172a;
+  --theme-text-strong: #334155;
+  --theme-text-muted: #64748b;
+  --theme-text-soft: #94a3b8;
+  --theme-border: #e2e8f0;
+  --theme-border-soft: #eef2f1;
+  --theme-primary: #0d9488;
+  --theme-primary-hover: #0b7a70;
+  --theme-primary-soft: #ccfbf1;
+  --theme-primary-pale: #f0fdfa;
+  --theme-accent: #06b6d4;
+  --theme-image-bg: #d5f1f0;
+  --theme-shadow: rgba(15, 23, 22, 0.06);
+}
+
+/* Add another [data-theme='name'] block here to create a new palette. */
+[data-theme='sunset'] {
+  --theme-primary: #d05a3b;
+  --theme-primary-hover: #a9432b;
+  --theme-primary-soft: #f9d8ca;
+  --theme-primary-pale: #fff4ef;
+  --theme-accent: #e4a23a;
+  --theme-image-bg: #f8dfc9;
+}

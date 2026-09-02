@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, PawPrint } from 'lucide-react';
 import { TrustRow, PetImagePanel } from './AuthShared';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import { googleLoginUrl } from '../services/authApi';
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -45,23 +46,23 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="pc-body">
-      <div className="pc-form-col">
-        <h1>
+    <div className="grid items-center gap-10 min-[861px]:grid-cols-[1.1fr_0.9fr]">
+      <div>
+        <h1 className="mb-2 text-[32px] font-extrabold text-[var(--theme-text)]">
           Welcome <span>back!</span>
         </h1>
-        <p className="pc-subtitle">Log in to continue caring for your pets.</p>
+        <p className="mb-7 text-[15px] leading-6 text-[var(--theme-text-muted)]">Log in to continue caring for your pets.</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {error && (
-            <div className="pc-form-error" style={{ marginBottom: '14px', color: '#dc2626', fontSize: '13px', fontWeight: 600 }}>
+            <div className="mb-3.5 text-[13px] font-semibold text-red-600">
               {error}
             </div>
           )}
 
-          <div className="pc-field">
-            <label className="pc-label" htmlFor="loginEmail">Email Address</label>
-            <div className="pc-input-wrap">
+          <div className="mb-[18px]">
+            <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="loginEmail">Email Address</label>
+            <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
               <Mail size={18} />
               <input
                 id="loginEmail"
@@ -69,14 +70,14 @@ export default function LoginForm() {
                 placeholder="Enter your email"
                 value={form.email}
                 onChange={handleChange('email')}
-                required
+                required className="box-border w-full rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] px-[42px] py-3 text-[14.5px] text-[var(--theme-text)] outline-none transition focus:border-[var(--theme-primary)] focus:ring-[3px] focus:ring-[var(--theme-primary)]/15"
               />
             </div>
           </div>
 
-          <div className="pc-field">
-            <label className="pc-label" htmlFor="loginPassword">Password</label>
-            <div className="pc-input-wrap">
+          <div className="mb-[18px]">
+            <label className="mb-1.5 block text-[13.5px] font-semibold text-[var(--theme-text-strong)]" htmlFor="loginPassword">Password</label>
+            <div className="relative flex items-center [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:text-[var(--theme-text-soft)]">
               <Lock size={18} />
               <input
                 id="loginPassword"
@@ -84,11 +85,11 @@ export default function LoginForm() {
                 placeholder="Enter your password"
                 value={form.password}
                 onChange={handleChange('password')}
-                required
+                required className="box-border w-full rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] pl-[42px] pr-14 py-3 text-[14.5px] text-[var(--theme-text)] outline-none transition focus:border-[var(--theme-primary)] focus:ring-[3px] focus:ring-[var(--theme-primary)]/15"
               />
               <button
                 type="button"
-                className="pc-eye-btn"
+                className="absolute right-2 top-1/2 z-[1] flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-[var(--theme-text-soft)] hover:bg-[var(--theme-primary-pale)] hover:text-[var(--theme-primary)]"
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -97,33 +98,33 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <div className="pc-row-between">
-            <label className="pc-remember">
-              <input type="checkbox" checked={form.remember} onChange={handleChange('remember')} />
+          <div className="mb-6 flex items-center justify-between text-[13.5px]">
+            <label className="flex items-center gap-2 text-[var(--theme-text-muted)]">
+              <input className="mt-0.5 h-[17px] w-[17px] shrink-0 cursor-pointer appearance-none rounded border border-[var(--theme-border)] bg-[var(--theme-surface)] checked:border-[var(--theme-primary)] checked:bg-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)]/20" type="checkbox" checked={form.remember} onChange={handleChange('remember')} />
               Remember me
             </label>
-            <Link className="pc-link" to="/forgot-password">Forgot password?</Link>
+            <Link className="font-semibold text-[var(--theme-primary)] hover:underline" to="/forgot-password">Forgot password?</Link>
           </div>
 
-          <button type="submit" className="pc-submit-btn" disabled={isSubmitting}>
+          <button type="submit" className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-[var(--theme-primary)] p-3.5 text-[15.5px] font-bold text-white transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.99]" disabled={isSubmitting}>
             {isSubmitting ? 'Logging in...' : 'Log In'}
             <PawPrint size={16} fill="currentColor" strokeWidth={0} />
           </button>
         </form>
 
-        <div className="pc-divider">or continue with</div>
+        <div className="my-[22px] flex items-center gap-3 text-[13px] text-[var(--theme-text-soft)] before:h-px before:flex-1 before:bg-[var(--theme-border)] after:h-px after:flex-1 after:bg-[var(--theme-border)]">or continue with</div>
 
-        <div className="pc-social-row">
+        <div className="grid grid-cols-2 gap-3.5">
           <button
             type="button"
-            className="pc-social-btn"
+            className="flex cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm font-semibold text-[var(--theme-text-strong)] transition hover:bg-[var(--theme-surface-muted)]"
             onClick={() => {
-              window.location.href = 'http://localhost:5000/api/auth/google';
+              window.location.href = googleLoginUrl;
             }}
           >
             <GoogleIcon /> Google
           </button>
-          <button type="button" className="pc-social-btn" onClick={() => console.log('facebook login')}>
+          <button type="button" className="flex cursor-pointer items-center justify-center gap-2.5 rounded-[10px] border-[1.5px] border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-sm font-semibold text-[var(--theme-text-strong)] transition hover:bg-[var(--theme-surface-muted)]" onClick={() => console.log('facebook login')}>
             <FacebookIcon /> Facebook
           </button>
         </div>
