@@ -3,7 +3,7 @@ import { nearbyClinics } from "../data/mockData";
 
 export default function NearbyClinics() {
   return (
-    <section className="px-6 py-6 md:px-12">
+    <section className="h-full px-6 py-6 md:px-12">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900">Nearby Vet Clinics</h2>
         {/* TODO(backend): link to full clinics directory page */}
@@ -15,12 +15,12 @@ export default function NearbyClinics() {
         </a>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {nearbyClinics.map((clinic) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {nearbyClinics.slice(0, 3).map((clinic) => (
           <a
             key={clinic.id}
             href={`/vets/${clinic.id}`}
-            className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            className="h-full overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="aspect-[4/3] w-full bg-slate-100">
               {/* TODO(backend): replace with real clinic photo from API */}

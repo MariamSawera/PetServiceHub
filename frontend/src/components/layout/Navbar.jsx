@@ -9,12 +9,14 @@ const NAV_LINKS = [
   { label: 'Vets', to: '/vets' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
+  { label: 'My Pets', to: '/pets' },
 ];
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const visibleNavLinks = user ? NAV_LINKS : NAV_LINKS.filter((link) => link.to !== '/pets');
 
   const handleLogout = async () => {
     await logout();
@@ -32,7 +34,7 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
+          {visibleNavLinks.map((link) => (
             <NavLink
               key={link.to}
               end={link.to === '/'}
@@ -54,7 +56,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm font-semibold text-slate-700">Hi, {user.name || 'User'}</span>
+              <Link to="/profile" className="text-sm font-semibold text-slate-700 hover:text-teal-600">Hi, {user.name || 'User'}</Link>
               <button
                 type="button"
                 onClick={handleLogout}
@@ -88,7 +90,7 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t border-slate-100 bg-white px-4 pb-6 pt-2 sm:px-6">
           <nav className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
+            {visibleNavLinks.map((link) => (
               <NavLink
                 key={link.to}
                 end={link.to === '/'}

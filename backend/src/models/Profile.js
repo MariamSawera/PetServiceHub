@@ -9,11 +9,6 @@ const profileSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
-    fullName: {
-      type: String,
-      trim: true,
-      maxlength: 120,
-    },
     phone: {
       type: String,
       trim: true,

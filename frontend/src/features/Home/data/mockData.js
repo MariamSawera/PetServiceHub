@@ -47,37 +47,6 @@ export const quickActions = [
 ];
 
 // TODO(backend): GET /api/categories
-export const topCategories = [
-  {
-    id: "general-checkup",
-    title: "General Checkup",
-    description: "Regular health checkups",
-    emoji: "🐶",
-    accent: "mint",
-  },
-  {
-    id: "vaccinations",
-    title: "Vaccinations",
-    description: "Keep your pets protected",
-    emoji: "💉",
-    accent: "sky",
-  },
-  {
-    id: "dental-care",
-    title: "Dental Care",
-    description: "Clean teeth, happy pets",
-    emoji: "🦷",
-    accent: "violet",
-  },
-  {
-    id: "nutrition",
-    title: "Nutrition",
-    description: "Healthy diet for a longer life",
-    emoji: "🥣",
-    accent: "peach",
-  },
-];
-
 // TODO(backend): GET /api/clinics/nearby?lat=&lng=&limit=4
 export const nearbyClinics = [
   {
@@ -111,6 +80,46 @@ export const nearbyClinics = [
     rating: 4.5,
     reviews: 64,
     image: "/images/clinic-4.jpg",
+  },
+];
+
+// TODO(backend): GET /api/vets/top-rated?limit=4
+export const topRatedVets = [
+  {
+    id: "sarah-ahmed",
+    name: "Dr. Sarah Ahmed",
+    specialty: "Small Animal Specialist",
+    rating: 4.9,
+    reviews: 234,
+    initials: "SA",
+    avatarColor: "bg-teal-600",
+  },
+  {
+    id: "michael-lee",
+    name: "Dr. Michael Lee",
+    specialty: "Veterinary Surgeon",
+    rating: 4.8,
+    reviews: 190,
+    initials: "ML",
+    avatarColor: "bg-sky-600",
+  },
+  {
+    id: "ayesha-khan",
+    name: "Dr. Ayesha Khan",
+    specialty: "Pet Dermatologist",
+    rating: 4.8,
+    reviews: 167,
+    initials: "AK",
+    avatarColor: "bg-violet-600",
+  },
+  {
+    id: "david-wilson",
+    name: "Dr. David Wilson",
+    specialty: "Emergency Care",
+    rating: 4.7,
+    reviews: 142,
+    initials: "DW",
+    avatarColor: "bg-amber-600",
   },
 ];
 

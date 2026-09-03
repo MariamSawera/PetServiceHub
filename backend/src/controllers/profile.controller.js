@@ -1,7 +1,6 @@
 import Profile from "../models/Profile.js";
 
 const PROFILE_FIELDS = [
-  "fullName",
   "phone",
   "avatar",
   "bio",
