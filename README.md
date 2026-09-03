@@ -197,6 +197,42 @@ The backend authentication API is mounted under `/api/auth`:
 - `GET /api/auth/google`
 - `GET /api/auth/google/callback`
 
+## Profile and Pet Routes
+
+These resources require the JWT cookie created during login, or an
+`Authorization: Bearer <token>` header. Profile and pet queries are scoped to
+the logged-in user; clients cannot assign or change `userId` or `owner`.
+
+### Profile
+
+- `GET /api/profile` - Get the logged-in user's profile
+- `PUT /api/profile` - Create or update the logged-in user's profile
+
+The profile document uses `userId` as a unique owner reference.
+
+### Pets
+
+- `GET /api/pets` - List only the logged-in user's pets
+- `POST /api/pets` - Add a pet for the logged-in user
+- `GET /api/pets/:petId` - Get one of the logged-in user's pets
+- `PATCH /api/pets/:petId` - Edit one of the logged-in user's pets
+- `DELETE /api/pets/:petId` - Delete one of the logged-in user's pets
+
+Each pet has an `owner` reference. The schema is ready for future medical
+information and vaccination data, but vaccination and reminder workflows are
+not implemented yet.
+
+### Roles
+
+Users support these roles:
+
+- `user` - Default role for pet owners
+- `provider` - Reserved for care providers
+- `admin` - Reserved for administrators
+
+Roles are restricted by the User schema, and `authorizeRoles` can be applied to
+future role-specific routes.
+
 ## Troubleshooting
 
 ### Database connection fails
