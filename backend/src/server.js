@@ -5,6 +5,9 @@ import { connectDB } from './config/db.js';
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import passport from "./config/passport.js";
+import uploadRoutes from "./routes/upload.js";
+import profileRoutes from "./routes/profile.routes.js";
+import petRoutes from "./routes/pet.routes.js";
 
 
 
@@ -23,6 +26,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api", uploadRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/pets", petRoutes);
 
 
 app.get("/api/health", (req, res) => {

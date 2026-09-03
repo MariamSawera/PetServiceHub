@@ -1,13 +1,19 @@
-const express = require("express");
-const router = express.Router();
-const upload = require("../uploads/upload");
-const cloudinary = require("../config/cloudinary");
+import express from "express";
+import upload from "../uploads/upload.js";
+import cloudinary from "../config/cloudinary.js";
+import protectRoute from "../middleware/protectRoute.js";
 
-router.post("/upload", upload.single("image"), async (req, res) => {
+const router = express.Router();
+
+router.post("/upload", protectRoute, upload.single("image"), async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Image file is required" });
+        }
+
         const result = await cloudinary.uploader.upload_stream(
             {
-                folder: "my-project",
+                folder: `pawcare/${req.user._id}`,
             },
             (error, result) => {
                 if (error) {
@@ -16,6 +22,7 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
                 res.json({
                     imageUrl: result.secure_url,
+                    ownerId: req.user._id,
                 });
             }
         );
@@ -27,4 +34,4 @@ router.post("/upload", upload.single("image"), async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
