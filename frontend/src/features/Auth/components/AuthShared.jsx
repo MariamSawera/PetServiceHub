@@ -1,12 +1,9 @@
-import { PawPrint, ShieldCheck, Lock, Sparkles, Heart } from 'lucide-react';
+import { ShieldCheck, Lock, Sparkles } from 'lucide-react';
 
 /** Logo shown top-left on both Login and Signup */
 export function PawCareLogo() {
   return (
     <div className="flex items-center gap-2 text-[22px] font-bold text-[var(--theme-text)]">
-      <span className="flex text-[var(--theme-primary)]">
-        <PawPrint size={24} fill="currentColor" strokeWidth={0} />
-      </span>
       PawCare
     </div>
   );
@@ -36,20 +33,18 @@ export function TrustRow() {
  * Right-hand illustration column.
  * Keep the default path aligned with the file in /public.
  */
-export function PetImagePanel({ src = './images/pets-hero.png' }) {
+export function PetImagePanel({ src = '/images/hero-dog-cat.png' }) {
   return (
     <div className="relative flex h-full items-center justify-center max-[860px]:hidden">
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[40%_60%_55%_45%/50%_45%_55%_50%] bg-[var(--theme-image-bg)]">
-        <span className="absolute left-[8%] top-[6%] flex h-10 w-10 items-center justify-center rounded-full bg-[var(--theme-primary-soft)] text-[var(--theme-primary)] shadow-[0_6px_16px_var(--theme-shadow)]">
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[40%_60%_55%_45%/50%_45%_55%_50%] bg-transparent">
+        {/* <span className="absolute left-[8%] top-[6%] flex h-10 w-10 items-center justify-center rounded-full bg-[var(--theme-primary-soft)] text-[var(--theme-primary)] shadow-[0_6px_16px_var(--theme-shadow)]">
           <Heart size={18} fill="currentColor" strokeWidth={0} />
-        </span>
-        <PawPrint className="absolute right-[4%] top-[2%] text-[var(--theme-primary-soft)] opacity-90" size={64} fill="currentColor" strokeWidth={0} />
+        </span> */}
         <img
           src={src}
           alt="Happy cat and dog"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
-            e.currentTarget.parentElement.style.background = 'var(--theme-surface-muted)';
           }}
         />
       </div>

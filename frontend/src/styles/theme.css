@@ -17,6 +17,12 @@
   --theme-shadow: rgba(15, 23, 22, 0.06);
 }
 
+html,
+body {
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
 /* Add another [data-theme='name'] block here to create a new palette. */
 [data-theme='sunset'] {
   --theme-primary: #d05a3b;

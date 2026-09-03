@@ -1,5 +1,3 @@
-import daisyui from 'daisyui';
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -33,11 +31,13 @@ export default {
         cyan: {
           500: 'var(--theme-accent)',
         },
+        brand: {
+          50: 'var(--theme-primary-pale)',
+          100: 'var(--theme-primary-soft)',
+          600: 'var(--theme-primary)',
+          700: 'var(--theme-primary-hover)',
+        },
       },
     },
-  },
-  plugins: [daisyui],
-  daisyui: {
-    themes: [ "forest"],
   },
 }

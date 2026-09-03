@@ -18,7 +18,7 @@ const SUPPORT_LINKS = [
 export default function Footer() {
   return (
     <footer className="bg-slate-950 text-slate-300">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:px-8">
+      <div className="mx-auto grid max-w-[1400px] gap-10 px-6 py-14 md:grid-cols-2 md:px-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
         <div>
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-extrabold text-white">
             <PawPrint size={24} className="text-teal-400" fill="currentColor" strokeWidth={0} />
@@ -71,7 +71,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-slate-800">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-2 px-6 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between md:px-12">
           <span>© {new Date().getFullYear()} PawCare. All rights reserved.</span>
           <span>Made with care for pets and their people.</span>
         </div>

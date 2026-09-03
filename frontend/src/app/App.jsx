@@ -8,7 +8,9 @@ export default function App() {
     <>
       <Navbar />
 
-      <AppRoutes />
+      <div className="mx-auto max-w-[1400px]">
+        <AppRoutes />
+      </div>
 
       <Footer />
     </>

@@ -23,7 +23,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white backdrop-blur border-b border-slate-100">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-12">
         {/* Logo */}
 <Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-[#0B8F87]">   
        <PawPrint size={24} className="text-teal-600" fill="currentColor" strokeWidth={0} />
@@ -35,10 +35,13 @@ export default function Navbar() {
           {NAV_LINKS.map((link) => (
             <NavLink
               key={link.to}
+              end={link.to === '/'}
               to={link.to}
               className={({ isActive }) =>
-                `text-sm font-medium transition-colors ${
-                  isActive ? 'text-teal-600' : 'text-slate-600 hover:text-teal-600'
+                `border-b-2 border-transparent pb-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
+                    : 'text-slate-600 hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]'
                 }`
               }
             >
@@ -88,11 +91,14 @@ export default function Navbar() {
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.to}
+                end={link.to === '/'}
                 to={link.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive ? 'bg-teal-50 text-teal-600' : 'text-slate-600 hover:bg-slate-50'
+                  `rounded-md border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'border-[var(--theme-primary)] bg-teal-50 text-[var(--theme-primary)]'
+                      : 'border-transparent text-slate-600 hover:border-[var(--theme-primary)] hover:bg-slate-50'
                   }`
                 }
               >
