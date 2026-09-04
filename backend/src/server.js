@@ -8,6 +8,9 @@ import passport from "./config/passport.js";
 import uploadRoutes from "./routes/upload.js";
 import profileRoutes from "./routes/profile.routes.js";
 import petRoutes from "./routes/pet.routes.js";
+import clinicRoutes from "./routes/clinic.routes.js";
+import appointmentRoutes from "./routes/appointment.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 
 
 
@@ -27,6 +30,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/pets", petRoutes);
+app.use("/api/clinics", clinicRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 
 app.get("/api/health", (req, res) => {

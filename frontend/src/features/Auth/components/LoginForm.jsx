@@ -36,8 +36,8 @@ export default function LoginForm() {
 
     try {
       setIsSubmitting(true);
-      await login(form.email, form.password);
-      navigate('/');
+      const loggedInUser = await login(form.email, form.password);
+      navigate(loggedInUser.role === 'provider' ? '/provider/dashboard' : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

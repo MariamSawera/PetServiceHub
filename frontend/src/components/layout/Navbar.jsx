@@ -6,7 +6,7 @@ import { useAuth } from '../../features/Auth/context/useAuth';
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/services' },
-  { label: 'Vets', to: '/vets' },
+  { label: 'Vets', to: '/find-vets' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
   { label: 'My Pets', to: '/pets' },
@@ -16,7 +16,12 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
-  const visibleNavLinks = user ? NAV_LINKS : NAV_LINKS.filter((link) => link.to !== '/pets');
+  const visibleNavLinks = user
+    ? [
+        ...NAV_LINKS.filter((link) => user.role === 'provider' ? link.to !== '/pets' : true),
+        { label: 'Appointments', to: user.role === 'provider' ? '/provider/appointments' : '/appointments' },
+      ]
+    : NAV_LINKS.filter((link) => link.to !== '/pets');
 
   const handleLogout = async () => {
     await logout();
@@ -56,7 +61,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <Link to="/profile" className="text-sm font-semibold text-slate-700 hover:text-teal-600">Hi, {user.name || 'User'}</Link>
+              <Link to={user.role === 'provider' ? '/provider/dashboard' : '/profile'} className="text-sm font-semibold text-slate-700 hover:text-teal-600">Hi, {user.name || 'User'}</Link>
               <button
                 type="button"
                 onClick={handleLogout}

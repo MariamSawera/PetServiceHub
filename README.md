@@ -1,52 +1,38 @@
 # PawCare
 
-PawCare is a pet-care platform that brings everyday pet health and care services into one place. The website is designed to help pet parents find nearby veterinary clinics, explore care categories, manage pet-related information, and use an AI symptom-checker workflow. It also includes account registration, email verification, password login, Google OAuth login, and session-aware navigation.
+PawCare is a pet-care platform for finding veterinary clinics, managing pets, booking appointments, and leaving verified reviews. It includes local authentication, email verification, Google OAuth, provider clinic management, maps, directions, and appointment workflows.
 
 ## Features
 
 - React frontend built with Vite
 - Express and Node.js backend
 - MongoDB database with Mongoose
-- User signup, login, logout, and protected profile access
-- Email verification for local accounts
-- Google OAuth 2.0 authentication
-- Responsive pet-care homepage with clinic and service sections
-- Axios API client with credential-based cookies
-- Tailwind CSS with centralized theme variables
-
-## Project Structure
-
-```text
-petServiceHub/
-├── backend/     Express API, authentication, database, and server configuration
-├── frontend/    React/Vite user interface
-└── README.md
-```
+- User signup, login, logout, protected profile and pet access
+- Email verification and Google OAuth 2.0 authentication
+- Provider-owned clinics with role-protected CRUD APIs
+- GeoJSON clinic locations with a MongoDB `2dsphere` index
+- Find Vets directory with Leaflet and OpenStreetMap markers
+- Browser geolocation, nearby search, radius and specialty filters
+- Clinic directions using Leaflet and OSRM
+- Appointment booking, booking history, cancellation, and provider status management
+- Verified reviews after completed appointments
 
 ## Requirements
 
-Install these before starting:
-
 - Node.js 18 or newer
 - npm
-- MongoDB, either locally or through MongoDB Atlas
-- A Google Cloud project if Google login is required
+- MongoDB locally or through MongoDB Atlas
+- Google Cloud project if Google login is required
 - SMTP email credentials if email verification is required
 
 ## Installation
-
-Install dependencies separately in both applications.
-
-### Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-### Frontend
-
-Open a second terminal from the project root:
+In a second terminal:
 
 ```bash
 cd frontend
@@ -55,139 +41,85 @@ npm install
 
 ## Environment Configuration
 
-Create a file named `.env` inside `backend/`. Do not commit this file or share its secret values.
+Create `backend/.env` and do not commit it:
 
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/pawcare
 JWT_SECRET=replace_with_a_long_random_secret
-
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-
 EMAIL_USER=your_smtp_email
 EMAIL_PASSWORD=your_smtp_password_or_app_password
 
-# Optional, only needed for Cloudinary uploads
+# Optional Cloudinary upload settings
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
-### MongoDB
-
-For a local MongoDB server, use a connection string such as:
-
-```env
-MONGO_URI=mongodb://127.0.0.1:27017/pawcare
-```
-
-For MongoDB Atlas:
-
-1. Create a cluster and database user.
-2. Add your development IP address to the Atlas network access list.
-3. Copy the driver connection string.
-4. Replace the username, password, and database name.
-5. Put the finished connection string in `MONGO_URI`.
-
-Example:
-
-```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/pawcare
-```
-
-### JWT Secret
-
-`JWT_SECRET` is used to sign authentication tokens. Use a long, random value in development and production. Never use a real secret in source control.
-
-### Google OAuth
-
-Google login is configured for local development with these callback URLs:
-
-- Authorized JavaScript origin: `http://localhost:5173`
-- Authorized redirect URI: `http://localhost:5000/api/auth/google/callback`
-
-To configure it:
-
-1. Open the Google Cloud Console.
-2. Create or select a project.
-3. Enable the Google Identity or OAuth-related APIs if prompted.
-4. Configure the OAuth consent screen.
-5. Create an OAuth 2.0 Client ID for a Web application.
-6. Add the origins and redirect URI listed above.
-7. Copy the generated client ID and client secret into `backend/.env`.
-
-The frontend starts Google login at:
-
-```text
-http://localhost:5000/api/auth/google
-```
-
-The backend callback redirects back to the frontend after authentication. If you change either development port, update the CORS setting in `backend/src/server.js` and the Google OAuth URLs in `backend/src/config/passport.js`.
-
-### Email Verification
-
-The backend sends verification emails using Nodemailer. Configure `EMAIL_USER` and `EMAIL_PASSWORD` with credentials for your SMTP provider. If your provider supports two-factor authentication, use an app password instead of your normal account password.
+Google OAuth uses `http://localhost:5173` as the authorized origin and `http://localhost:5000/api/auth/google/callback` as the authorized redirect URI.
 
 ## Running in Development
 
-Start the backend and frontend in separate terminals.
-
-### Terminal 1: Backend
+Backend:
 
 ```bash
 cd backend
 npm run dev
 ```
 
-The API runs at:
-
-```text
-http://localhost:5000
-```
-
-Health check:
-
-```text
-http://localhost:5000/api/health
-```
-
-### Terminal 2: Frontend
+Frontend:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-The frontend runs at:
+The API runs at `http://localhost:5000` and the frontend at `http://localhost:5173`.
 
-```text
-http://localhost:5173
-```
-
-Open the frontend URL in your browser. The frontend API client is configured to call the backend at `http://localhost:5000` and sends cookies with requests.
+Health check: `http://localhost:5000/api/health`
 
 ## Available Scripts
 
 ### Backend
 
 ```bash
-npm run dev     # Start the API with Nodemon
-npm start       # Start the API normally
+npm run dev
+npm start
+npm run seed:clinics
 ```
 
 ### Frontend
 
 ```bash
-npm run dev     # Start the Vite development server
-npm run build   # Create a production build
-npm run lint    # Run ESLint
-npm run preview # Preview the production build locally
+npm run dev
+npm run build
+npm run lint
+npm run preview
 ```
 
-## Authentication Routes
+## Demo Clinic Seed
 
-The backend authentication API is mounted under `/api/auth`:
+With `MONGO_URI` configured, seed four Hyderabad clinics and a demo provider:
+
+```bash
+cd backend
+npm run seed:clinics
+```
+
+Demo provider credentials:
+
+```text
+Email: provider.demo@pawcare.com
+Password: Provider123!
+```
+
+The seed is repeatable and updates matching provider-owned clinics instead of creating duplicates. Change or remove these credentials before deployment.
+
+## Authentication and Roles
+
+Authentication routes are mounted under `/api/auth`:
 
 - `POST /api/auth/signup`
 - `POST /api/auth/login`
@@ -197,65 +129,89 @@ The backend authentication API is mounted under `/api/auth`:
 - `GET /api/auth/google`
 - `GET /api/auth/google/callback`
 
-## Profile and Pet Routes
+Supported roles are `user`, `provider`, and `admin`. Users manage pets and bookings. Providers manage their clinics and appointments. Public Find Vets and clinic detail pages do not require authentication.
 
-These resources require the JWT cookie created during login, or an
-`Authorization: Bearer <token>` header. Profile and pet queries are scoped to
-the logged-in user; clients cannot assign or change `userId` or `owner`.
+## Clinics and Providers
 
-### Profile
+Clinics are tenants owned by provider users. The backend always assigns the authenticated provider as `owner` during creation and scopes provider updates and deletes to that owner.
 
-- `GET /api/profile` - Get the logged-in user's profile
-- `PUT /api/profile` - Create or update the logged-in user's profile
+Provider frontend routes:
 
-The profile document uses `userId` as a unique owner reference.
+- `/provider/dashboard` - Create, edit, and delete owned clinics
+- `/provider/appointments` - Review appointments for owned clinics and update status
 
-### Pets
+Clinic API routes:
 
-- `GET /api/pets` - List only the logged-in user's pets
-- `POST /api/pets` - Add a pet for the logged-in user
-- `GET /api/pets/:petId` - Get one of the logged-in user's pets
-- `PATCH /api/pets/:petId` - Edit one of the logged-in user's pets
-- `DELETE /api/pets/:petId` - Delete one of the logged-in user's pets
+- `GET /api/clinics` - List public clinics
+- `GET /api/clinics/:clinicId` - Get a public clinic
+- `GET /api/clinics/nearby?longitude=<lng>&latitude=<lat>` - List clinics ordered by distance
+- `GET /api/clinics/mine` - List the authenticated provider's clinics
+- `POST /api/clinics` - Create a provider-owned clinic
+- `PATCH /api/clinics/:clinicId` - Update an owned clinic
+- `DELETE /api/clinics/:clinicId` - Delete an owned clinic
 
-Each pet has an `owner` reference. The schema is ready for future medical
-information and vaccination data, but vaccination and reminder workflows are
-not implemented yet.
+Nearby search accepts `maxDistance`, `limit`, and `specialty`; results include `distanceKm`.
 
-### Roles
+Clinic locations use GeoJSON coordinates in `[longitude, latitude]` order:
 
-Users support these roles:
+```json
+{
+  "type": "Point",
+  "coordinates": [78.4867, 17.4065]
+}
+```
 
-- `user` - Default role for pet owners
-- `provider` - Reserved for care providers
-- `admin` - Reserved for administrators
+The provider dashboard includes a map picker. Manual coordinates remain available under Advanced location.
 
-Roles are restricted by the User schema, and `authorizeRoles` can be applied to
-future role-specific routes.
+The Find Vets page is `/find-vets`. It uses Leaflet with OpenStreetMap tiles, clinic markers, browser geolocation, nearby sorting, radius filters, and specialty filters. Clinic details provide Get directions using OSRM.
+
+## Appointments
+
+The booking flow is:
+
+```text
+Find Vets -> Clinic Details -> Book Appointment -> Select Pet -> Select Service
+-> Select Date -> Select Time -> Confirm Booking
+```
+
+- `POST /api/appointments` - Create a pending appointment
+- `GET /api/appointments` - List the logged-in user's bookings
+- `GET /api/appointments/:appointmentId` - Get an owned booking
+- `PATCH /api/appointments/:appointmentId/cancel` - Cancel a pending or confirmed booking
+- `GET /api/appointments/provider` - List appointments for provider-owned clinics
+- `PATCH /api/appointments/provider/:appointmentId/status` - Provider status update
+
+Providers can update appointments to `pending`, `confirmed`, `completed`, or `cancelled`. Users see persisted status at `/appointments`.
+
+## Verified Reviews
+
+Users can leave one review per appointment only after the provider marks that appointment `completed`. Users can update or delete only their own reviews.
+
+- `GET /api/reviews/clinic/:clinicId` - Public clinic reviews
+- `GET /api/reviews/mine` - Logged-in user's reviews
+- `POST /api/reviews` - Review a completed owned appointment
+- `PATCH /api/reviews/:reviewId` - Update an owned review
+- `DELETE /api/reviews/:reviewId` - Delete an owned review
+
+Clinic rating and review totals are recalculated whenever a review is created, updated, or deleted.
+
+## Profile and Pets
+
+Profile and pet routes require authentication and are scoped to the logged-in user.
+
+- `GET /api/profile`
+- `PUT /api/profile`
+- `GET /api/pets`
+- `POST /api/pets`
+- `GET /api/pets/:petId`
+- `PATCH /api/pets/:petId`
+- `DELETE /api/pets/:petId`
 
 ## Troubleshooting
 
-### Database connection fails
-
-Check that MongoDB is running, the `MONGO_URI` is correct, and Atlas allows your current IP address.
-
-### Google login fails
-
-Confirm that the client ID and secret are correct and that the redirect URI exactly matches:
-
-```text
-http://localhost:5000/api/auth/google/callback
-```
-
-Also make sure both servers are running on ports `5000` and `5173`.
-
-### Frontend cannot reach the backend
-
-Confirm that the backend is running and that the frontend Axios base URL is `http://localhost:5000`. Check that backend CORS allows `http://localhost:5173` and credentials are enabled.
-
-### Port already in use
-
-Stop the process using the port, or change the backend `PORT` and update the frontend API base URL, CORS origin, and Google OAuth configuration to match.
+- If the database connection fails, check MongoDB, `MONGO_URI`, and Atlas network access.
+- If the frontend cannot reach the backend, confirm both servers, the Axios base URL, CORS, and credentials settings.
+- If a port is in use, update the backend port, frontend API base URL, CORS origin, and OAuth configuration together.
 
 ## Security Notes
 

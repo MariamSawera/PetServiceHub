@@ -7,7 +7,7 @@ export default function TopRatedVets() {
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900">Top Rated Vets</h2>
         <a
-          href="/vets"
+          href="/find-vets"
           className="flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
         >
           View all <ArrowRight className="h-4 w-4" />

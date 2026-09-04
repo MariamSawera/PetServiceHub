@@ -42,7 +42,7 @@ export const quickActions = [
     description: "Find trusted vets near you",
     icon: "MapPin",
     accent: "teal",
-    href: "/vets",
+    href: "/find-vets",
   },
 ];
 
