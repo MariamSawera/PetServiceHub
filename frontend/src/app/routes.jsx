@@ -15,6 +15,10 @@ import BookingPage from '../features/Appointments/pages/BookingPage';
 import BookingConfirmationPage from '../features/Appointments/pages/BookingConfirmationPage';
 import ProviderAppointmentsPage from '../features/Appointments/pages/ProviderAppointmentsPage';
 import AppointmentsPage from '../features/Appointments/pages/AppointmentsPage';
+import AboutPage from '../features/About/pages/AboutPage';
+import ContactPage from '../features/Contact/pages/ContactPage';
+import ServicesPage from '../features/Services/pages/ServicesPage';
+import CommunityPage from '../features/Community/pages/CommunityPage';
 
 export default function AppRoutes() {
 	return (
@@ -24,6 +28,10 @@ export default function AppRoutes() {
 			<Route path="/signup" element={<AuthPage />} />
 			<Route path="/find-vets" element={<FindVetsPage />} />
 			<Route path="/find-vets/:clinicId" element={<ClinicDetailsPage />} />
+			<Route path="/about" element={<AboutPage />} />
+			<Route path="/contact" element={<ContactPage />} />
+			<Route path="/services" element={<ServicesPage />} />
+			<Route path="/community" element={<CommunityPage />} />
 			<Route element={<ProtectedRoute />}>
 				<Route path="/profile" element={<ProfilePage />} />
 				<Route element={<ProviderRoute />}>

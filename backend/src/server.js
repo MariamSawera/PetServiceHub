@@ -14,6 +14,8 @@ import reviewRoutes from "./routes/review.routes.js";
 import reminderRoutes from "./routes/reminder.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import { createVaccinationNotifications } from "./services/notification.service.js";
+import { apiRateLimiter } from "./middleware/rateLimiters.js";
+import communityRoutes from "./routes/community.routes.js";
 
 
 
@@ -29,6 +31,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use("/api", apiRateLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api/profile", profileRoutes);
@@ -38,6 +41,7 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/community", communityRoutes);
 
 
 app.get("/api/health", (req, res) => {

@@ -7,6 +7,7 @@ import { getNotifications, markAllNotificationsRead, markNotificationRead } from
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/services' },
+  { label: 'Community', to: '/community' },
   { label: 'Vets', to: '/find-vets' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },

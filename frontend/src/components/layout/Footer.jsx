@@ -4,6 +4,7 @@ import { Mail, MapPin, PawPrint, Phone } from 'lucide-react';
 const FOOTER_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/services' },
+  { label: 'Community', to: '/community' },
   { label: 'Vets', to: '/find-vets' },
   { label: 'About us', to: '/about' },
   { label: 'Contact', to: '/contact' },
