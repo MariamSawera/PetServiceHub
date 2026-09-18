@@ -11,6 +11,7 @@ import petRoutes from "./routes/pet.routes.js";
 import clinicRoutes from "./routes/clinic.routes.js";
 import appointmentRoutes from "./routes/appointment.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import reminderRoutes from "./routes/reminder.routes.js";
 
 
 
@@ -33,6 +34,7 @@ app.use("/api/pets", petRoutes);
 app.use("/api/clinics", clinicRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 
 app.get("/api/health", (req, res) => {

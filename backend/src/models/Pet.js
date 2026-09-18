@@ -1,5 +1,34 @@
 import mongoose from "mongoose";
 
+const vaccinationSchema = new mongoose.Schema(
+  {
+    vaccineName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
+    dateAdministered: {
+      type: Date,
+      required: true,
+    },
+    nextDueDate: {
+      type: Date,
+    },
+    veterinarian: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+    },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+    },
+  },
+  { timestamps: true }
+);
+
 const petSchema = new mongoose.Schema(
   {
     owner: {
@@ -46,7 +75,7 @@ const petSchema = new mongoose.Schema(
       default: {},
     },
     vaccinations: {
-      type: [mongoose.Schema.Types.Mixed],
+      type: [vaccinationSchema],
       default: [],
     },
   },

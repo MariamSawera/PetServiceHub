@@ -24,6 +24,16 @@ const petPayload = (body = {}) => {
 
 const invalidId = (id) => !mongoose.isValidObjectId(id);
 
+const vaccinationPayload = (body = {}) => {
+  const fields = ["vaccineName", "dateAdministered", "nextDueDate", "veterinarian", "notes"];
+  return fields.reduce((payload, field) => {
+    if (body[field] !== undefined) {
+      payload[field] = body[field];
+    }
+    return payload;
+  }, {});
+};
+
 export const listPets = async (req, res) => {
   try {
     const pets = await Pet.find({ owner: req.user._id }).sort({ createdAt: -1 });
@@ -101,6 +111,86 @@ export const deletePet = async (req, res) => {
     return res.json({ message: "Pet deleted successfully" });
   } catch (error) {
     console.error("deletePet error", error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const listVaccinations = async (req, res) => {
+  if (invalidId(req.params.petId)) {
+    return res.status(404).json({ message: "Pet not found" });
+  }
+
+  try {
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id }).select("vaccinations");
+    if (!pet) {
+      return res.status(404).json({ message: "Pet not found" });
+    }
+
+    return res.json(pet.vaccinations.sort((first, second) => new Date(second.dateAdministered) - new Date(first.dateAdministered)));
+  } catch (error) {
+    console.error("listVaccinations error", error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const createVaccination = async (req, res) => {
+  if (invalidId(req.params.petId)) {
+    return res.status(404).json({ message: "Pet not found" });
+  }
+
+  try {
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    if (!pet) {
+      return res.status(404).json({ message: "Pet not found" });
+    }
+
+    pet.vaccinations.push(vaccinationPayload(req.body));
+    await pet.save();
+    return res.status(201).json(pet.vaccinations.at(-1));
+  } catch (error) {
+    console.error("createVaccination error", error);
+    return res.status(400).json({ message: "Invalid vaccination data" });
+  }
+};
+
+export const updateVaccination = async (req, res) => {
+  if (invalidId(req.params.petId) || invalidId(req.params.vaccinationId)) {
+    return res.status(404).json({ message: "Vaccination not found" });
+  }
+
+  try {
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const vaccination = pet?.vaccinations.id(req.params.vaccinationId);
+    if (!vaccination) {
+      return res.status(404).json({ message: "Vaccination not found" });
+    }
+
+    Object.assign(vaccination, vaccinationPayload(req.body));
+    await pet.save();
+    return res.json(vaccination);
+  } catch (error) {
+    console.error("updateVaccination error", error);
+    return res.status(400).json({ message: "Invalid vaccination data" });
+  }
+};
+
+export const deleteVaccination = async (req, res) => {
+  if (invalidId(req.params.petId) || invalidId(req.params.vaccinationId)) {
+    return res.status(404).json({ message: "Vaccination not found" });
+  }
+
+  try {
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const vaccination = pet?.vaccinations.id(req.params.vaccinationId);
+    if (!vaccination) {
+      return res.status(404).json({ message: "Vaccination not found" });
+    }
+
+    vaccination.deleteOne();
+    await pet.save();
+    return res.json({ message: "Vaccination deleted successfully" });
+  } catch (error) {
+    console.error("deleteVaccination error", error);
     return res.status(500).json({ message: "Server Error" });
   }
 };
