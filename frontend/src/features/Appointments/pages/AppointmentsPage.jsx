@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import { cancelAppointment, createReview, deleteReview, getMyReviews, getUserAppointments, updateReview } from '../services/appointmentApi';
 
 const statusStyles = {
-  pending: 'bg-amber-50 text-amber-700',
+  pending: 'bg-warning-soft text-warning',
   confirmed: 'bg-teal-50 text-teal-700',
   completed: 'bg-slate-100 text-slate-600',
-  cancelled: 'bg-red-50 text-red-600',
+  cancelled: 'bg-danger-soft text-danger',
 };
 
 export default function AppointmentsPage() {

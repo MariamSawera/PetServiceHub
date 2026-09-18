@@ -15,6 +15,13 @@ const protectRoute = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid token" });
     }
 
+    if (!user.tenantId || (decoded.tenantId && String(user.tenantId) !== String(decoded.tenantId))) {
+      return res.status(401).json({ message: "Invalid tenant context" });
+    }
+    if (req.tenantId && String(req.tenantId) !== String(user.tenantId)) {
+      return res.status(403).json({ message: "User does not belong to this tenant" });
+    }
+
     req.user = user;
     next();
   } catch (error) {

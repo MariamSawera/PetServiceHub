@@ -49,7 +49,7 @@ export default function ClinicMap({ clinics, userLocation }) {
             </Marker>
           );
         })}
-        {userLocation && <CircleMarker center={[userLocation.latitude, userLocation.longitude]} radius={8} pathOptions={{ color: '#0f766e', fillColor: '#2dd4bf', fillOpacity: 1 }}><Popup>Your current location</Popup></CircleMarker>}
+        {userLocation && <CircleMarker center={[userLocation.latitude, userLocation.longitude]} radius={8} pathOptions={{ color: 'var(--theme-map-line)', fillColor: 'var(--theme-map-fill)', fillOpacity: 1 }}><Popup>Your current location</Popup></CircleMarker>}
       </MapContainer>
       <div className="pointer-events-none absolute left-4 top-4 rounded-lg bg-white/95 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm">{userLocation ? 'Nearby clinics' : 'Clinic locations'}</div>
     </div>

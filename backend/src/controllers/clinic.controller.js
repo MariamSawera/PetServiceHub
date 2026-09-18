@@ -35,7 +35,7 @@ const queryNumber = (value, fallback) => {
 
 export const listClinics = async (req, res) => {
   try {
-    const clinics = await Clinic.find().sort({ createdAt: -1 });
+    const clinics = await Clinic.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
     return res.json(clinics);
   } catch (error) {
     console.error("listClinics error", error);
@@ -48,6 +48,7 @@ export const createClinic = async (req, res) => {
     const clinic = await Clinic.create({
       ...clinicPayload(req.body),
       owner: req.user._id,
+      tenantId: req.tenantId,
     });
     return res.status(201).json(clinic);
   } catch (error) {
@@ -62,7 +63,7 @@ export const getClinic = async (req, res) => {
   }
 
   try {
-    const clinic = await Clinic.findById(req.params.clinicId);
+    const clinic = await Clinic.findOne({ _id: req.params.clinicId, tenantId: req.tenantId });
 
     if (!clinic) {
       return res.status(404).json({ message: "Clinic not found" });
@@ -82,7 +83,7 @@ export const updateClinic = async (req, res) => {
 
   try {
     const clinic = await Clinic.findOneAndUpdate(
-      { _id: req.params.clinicId, owner: req.user._id },
+      { _id: req.params.clinicId, owner: req.user._id, tenantId: req.tenantId },
       { $set: clinicPayload(req.body) },
       { new: true, runValidators: true }
     );
@@ -107,6 +108,7 @@ export const deleteClinic = async (req, res) => {
     const clinic = await Clinic.findOneAndDelete({
       _id: req.params.clinicId,
       owner: req.user._id,
+      tenantId: req.tenantId,
     });
 
     if (!clinic) {
@@ -122,7 +124,7 @@ export const deleteClinic = async (req, res) => {
 
 export const listOwnedClinics = async (req, res) => {
   try {
-    const clinics = await Clinic.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const clinics = await Clinic.find({ owner: req.user._id, tenantId: req.tenantId }).sort({ createdAt: -1 });
     return res.json(clinics);
   } catch (error) {
     console.error("listOwnedClinics error", error);
@@ -140,7 +142,7 @@ export const listNearbyClinics = async (req, res) => {
 
   const maxDistance = Math.min(Math.max(queryNumber(req.query.maxDistance, 25000), 100), 100000);
   const limit = Math.min(Math.max(Math.trunc(queryNumber(req.query.limit, 20)), 1), 100);
-  const match = {};
+  const match = { tenantId: req.tenantId };
 
   if (req.query.city) match.city = new RegExp(`^${req.query.city.trim()}$`, "i");
   if (req.query.specialty) match.specialties = new RegExp(req.query.specialty.trim(), "i");

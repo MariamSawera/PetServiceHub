@@ -17,9 +17,9 @@ const ICONS = {
 
 const ACCENTS = {
   teal: "bg-brand-50 text-brand-600",
-  blue: "bg-sky-50 text-sky-600",
+  blue: "bg-info-soft text-info",
   purple: "bg-violet-50 text-violet-600",
-  amber: "bg-amber-50 text-amber-600",
+  amber: "bg-warning-soft text-warning",
 };
 
 export default function QuickActions() {

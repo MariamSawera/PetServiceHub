@@ -16,6 +16,9 @@ import notificationRoutes from "./routes/notification.routes.js";
 import { createVaccinationNotifications } from "./services/notification.service.js";
 import { apiRateLimiter } from "./middleware/rateLimiters.js";
 import communityRoutes from "./routes/community.routes.js";
+import { ensureDefaultTenant, resolveTenant } from "./middleware/tenantContext.js";
+import { migrateLegacyRecords } from "./services/tenantMigration.service.js";
+import tenantRoutes from "./routes/tenant.routes.js";
 
 
 
@@ -32,6 +35,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use("/api", apiRateLimiter);
+app.use("/api", resolveTenant);
 app.use("/api/auth", authRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api/profile", profileRoutes);
@@ -42,6 +46,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/community", communityRoutes);
+app.use("/api/tenants", tenantRoutes);
 
 
 app.get("/api/health", (req, res) => {
@@ -50,8 +55,11 @@ app.get("/api/health", (req, res) => {
 
 
 connectDB()
-  .then(() => {
+  .then(async () => {
     console.log("Database connected ✅");
+    const tenant = await ensureDefaultTenant();
+    await migrateLegacyRecords(tenant._id);
+    console.log(`Tenant migration ready: ${tenant.slug}`);
     createVaccinationNotifications().catch((error) => console.error("Initial vaccination notification sweep failed", error));
     setInterval(() => {
       createVaccinationNotifications().catch((error) => console.error("Vaccination notification sweep failed", error));

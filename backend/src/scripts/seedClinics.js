@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import Clinic from "../models/Clinic.js";
 import User from "../models/User.js";
+import Tenant from "../models/Tenant.js";
 
 const providerEmail = "provider.demo@pawcare.com";
 const providerPassword = "Provider123!";
@@ -76,18 +77,24 @@ const clinics = [
 
 const seed = async () => {
   await mongoose.connect(process.env.MONGO_URI);
+  const tenant = await Tenant.findOneAndUpdate(
+    { slug: process.env.DEFAULT_TENANT_SLUG || "default" },
+    { $setOnInsert: { name: "PawCare", slug: process.env.DEFAULT_TENANT_SLUG || "default" } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
   const password = await bcrypt.hash(providerPassword, 10);
   const provider = await User.findOneAndUpdate(
-    { email: providerEmail },
+    { email: providerEmail, tenantId: tenant._id },
     {
       $set: {
         name: "Demo Provider",
         role: "provider",
         isVerified: true,
         authProvider: "local",
+        tenantId: tenant._id,
       },
-      $setOnInsert: { email: providerEmail, password },
+      $setOnInsert: { email: providerEmail, password, tenantId: tenant._id },
     },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
@@ -99,8 +106,8 @@ const seed = async () => {
 
   for (const clinic of clinics) {
     await Clinic.findOneAndUpdate(
-      { owner: provider._id, name: clinic.name },
-      { $set: clinic, $setOnInsert: { owner: provider._id } },
+      { owner: provider._id, tenantId: tenant._id, name: clinic.name },
+      { $set: { ...clinic, tenantId: tenant._id }, $setOnInsert: { owner: provider._id, tenantId: tenant._id } },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
     );
   }

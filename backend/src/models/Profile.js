@@ -6,7 +6,6 @@ const profileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
       index: true,
     },
     phone: {
@@ -43,9 +42,12 @@ const profileSchema = new mongoose.Schema(
       trim: true,
       maxlength: 20,
     },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
   },
   { timestamps: true }
 );
+
+profileSchema.index({ tenantId: 1, userId: 1 }, { unique: true });
 
 const Profile = mongoose.model("Profile", profileSchema);
 

@@ -35,9 +35,9 @@ function DirectionsMap({ clinic, userLocation, route }) {
       <MapContainer center={userPosition} zoom={12} scrollWheelZoom className="h-full w-full">
         <RouteBounds points={points} />
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <CircleMarker center={userPosition} radius={8} pathOptions={{ color: '#0f766e', fillColor: '#2dd4bf', fillOpacity: 1 }}><Popup>Your current location</Popup></CircleMarker>
+        <CircleMarker center={userPosition} radius={8} pathOptions={{ color: 'var(--theme-map-line)', fillColor: 'var(--theme-map-fill)', fillOpacity: 1 }}><Popup>Your current location</Popup></CircleMarker>
         <Marker position={clinicPosition} icon={clinicIcon}><Popup><strong>{clinic.name}</strong><br />Destination</Popup></Marker>
-        {routePositions.length > 0 && <Polyline positions={routePositions} pathOptions={{ color: '#0f766e', weight: 5, opacity: 0.85 }} />}
+        {routePositions.length > 0 && <Polyline positions={routePositions} pathOptions={{ color: 'var(--theme-map-line)', weight: 5, opacity: 0.85 }} />}
       </MapContainer>
     </div>
   );
@@ -90,7 +90,7 @@ export default function ClinicDetailsPage() {
       <div className="mx-auto max-w-4xl">
         <Link to="/find-vets" className="inline-flex items-center gap-2 text-sm font-bold text-teal-700 hover:text-teal-900"><ArrowLeft size={16} /> Back to clinics</Link>
         <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex h-48 items-center justify-center bg-[linear-gradient(135deg,#ccfbf1,#e0f2fe)] md:h-64">{clinic.image ? <img src={clinic.image} alt={clinic.name} className="h-full w-full object-cover" /> : <Stethoscope size={56} className="text-teal-700/70" />}</div>
+              <div className="flex h-48 items-center justify-center bg-gradient-to-br from-hero-start to-hero-end md:h-64">{clinic.image ? <img src={clinic.image} alt={clinic.name} className="h-full w-full object-cover" /> : <Stethoscope size={56} className="text-teal-700/70" />}</div>
           <div className="p-6 md:p-9">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div><h1 className="text-3xl font-black text-slate-950">{clinic.name}</h1><p className="mt-2 flex items-center gap-2 text-slate-500"><MapPin size={17} className="text-teal-600" />{clinic.city || clinic.state || 'Location available on request'}</p></div>

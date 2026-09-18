@@ -3,9 +3,9 @@ import { topCategories } from "../data/mockData";
 
 const ACCENTS = {
   mint: "bg-emerald-50",
-  sky: "bg-sky-50",
+  sky: "bg-info-soft",
   violet: "bg-violet-50",
-  peach: "bg-orange-50",
+  peach: "bg-warning-soft",
 };
 
 export default function TopCategories() {

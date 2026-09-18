@@ -10,6 +10,7 @@ const appointmentSchema = new mongoose.Schema(
     time: { type: String, required: true, trim: true, maxlength: 20 },
     notes: { type: String, trim: true, maxlength: 500 },
     status: { type: String, enum: ["pending", "confirmed", "completed", "cancelled"], default: "pending" },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
   },
   { timestamps: true }
 );

@@ -6,11 +6,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+      index: true,
+    },
 
     email: {
       type: String,
       required: true,
-      unique: true,
+      lowercase: true,
+      index: true,
     },
 
     password: {
@@ -55,6 +62,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
 const User = mongoose.model("User", userSchema);
 

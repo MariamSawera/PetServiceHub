@@ -8,6 +8,7 @@ const clinicSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
     name: {
       type: String,
       required: true,

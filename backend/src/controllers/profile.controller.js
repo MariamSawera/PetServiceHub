@@ -21,7 +21,7 @@ const profilePayload = (body = {}) => {
 
 export const getProfile = async (req, res) => {
   try {
-    const profile = await Profile.findOne({ userId: req.user._id });
+    const profile = await Profile.findOne({ userId: req.user._id, tenantId: req.tenantId });
 
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
@@ -37,8 +37,8 @@ export const getProfile = async (req, res) => {
 export const upsertProfile = async (req, res) => {
   try {
     const profile = await Profile.findOneAndUpdate(
-      { userId: req.user._id },
-      { $set: profilePayload(req.body), $setOnInsert: { userId: req.user._id } },
+      { userId: req.user._id, tenantId: req.tenantId },
+      { $set: profilePayload(req.body), $setOnInsert: { userId: req.user._id, tenantId: req.tenantId } },
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
 

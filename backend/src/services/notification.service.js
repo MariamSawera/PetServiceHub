@@ -5,13 +5,13 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const dateKey = (date) => new Date(date).toISOString().slice(0, 10);
 
-export const createNotification = async ({ recipient, type, title, message, link, referenceId, uniqueKey }) => {
-  if (!recipient || !uniqueKey) return null;
+export const createNotification = async ({ tenantId, recipient, type, title, message, link, referenceId, uniqueKey }) => {
+  if (!tenantId || !recipient || !uniqueKey) return null;
 
   try {
-    return await Notification.create({ recipient: recipient._id || recipient, type, title, message, link, referenceId, uniqueKey });
+    return await Notification.create({ tenantId, recipient: recipient._id || recipient, type, title, message, link, referenceId, uniqueKey });
   } catch (error) {
-    if (error.code === 11000) return Notification.findOne({ uniqueKey });
+    if (error.code === 11000) return Notification.findOne({ tenantId, uniqueKey });
     throw error;
   }
 };
@@ -50,6 +50,7 @@ export const createAppointmentNotification = (appointment, type) => {
   if (!notification) return null;
 
   return createNotification({
+    tenantId: appointment.tenantId,
     recipient: appointment.user,
     type,
     ...notification,
@@ -61,7 +62,7 @@ export const createAppointmentNotification = (appointment, type) => {
 export const createVaccinationNotifications = async (now = new Date()) => {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   const cutoff = new Date(today + 30 * MS_PER_DAY);
-  const pets = await Pet.find({ "vaccinations.nextDueDate": { $exists: true, $ne: null, $lte: cutoff } }).select("owner name vaccinations");
+  const pets = await Pet.find({ "vaccinations.nextDueDate": { $exists: true, $ne: null, $lte: cutoff } }).select("owner name vaccinations tenantId");
   const notifications = [];
 
   for (const pet of pets) {
@@ -69,6 +70,7 @@ export const createVaccinationNotifications = async (now = new Date()) => {
       if (!vaccination.nextDueDate || new Date(vaccination.nextDueDate) > cutoff) continue;
       const dueDate = dateKey(vaccination.nextDueDate);
       notifications.push(createNotification({
+        tenantId: pet.tenantId,
         recipient: pet.owner,
         type: "vaccination_due",
         title: "Vaccination reminder",

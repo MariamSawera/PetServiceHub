@@ -15,7 +15,7 @@ const reminderStatus = (daysUntilDue) => {
 
 export const listReminders = async (req, res) => {
   try {
-    const pets = await Pet.find({ owner: req.user._id }).select("name species vaccinations");
+    const pets = await Pet.find({ owner: req.user._id, tenantId: req.tenantId }).select("name species vaccinations");
     const today = startOfTodayUtc();
     const reminders = pets.flatMap((pet) => pet.vaccinations
       .filter((vaccination) => vaccination.nextDueDate)

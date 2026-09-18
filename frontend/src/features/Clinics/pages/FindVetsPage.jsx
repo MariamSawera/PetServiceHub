@@ -13,7 +13,7 @@ function ClinicCard({ clinic }) {
         {clinic.image ? (
           <img src={clinic.image} alt={clinic.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#ccfbf1,#e0f2fe)]">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-hero-start to-hero-end">
             <Stethoscope size={42} className="text-teal-700/70" />
           </div>
         )}

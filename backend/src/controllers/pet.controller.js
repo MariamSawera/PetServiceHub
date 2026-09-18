@@ -36,7 +36,7 @@ const vaccinationPayload = (body = {}) => {
 
 export const listPets = async (req, res) => {
   try {
-    const pets = await Pet.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const pets = await Pet.find({ owner: req.user._id, tenantId: req.tenantId }).sort({ createdAt: -1 });
     return res.json(pets);
   } catch (error) {
     console.error("listPets error", error);
@@ -46,7 +46,7 @@ export const listPets = async (req, res) => {
 
 export const createPet = async (req, res) => {
   try {
-    const pet = await Pet.create({ ...petPayload(req.body), owner: req.user._id });
+    const pet = await Pet.create({ ...petPayload(req.body), owner: req.user._id, tenantId: req.tenantId });
     return res.status(201).json(pet);
   } catch (error) {
     console.error("createPet error", error);
@@ -60,7 +60,7 @@ export const getPet = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId });
 
     if (!pet) {
       return res.status(404).json({ message: "Pet not found" });
@@ -80,7 +80,7 @@ export const updatePet = async (req, res) => {
 
   try {
     const pet = await Pet.findOneAndUpdate(
-      { _id: req.params.petId, owner: req.user._id },
+      { _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId },
       { $set: petPayload(req.body) },
       { new: true, runValidators: true }
     );
@@ -102,7 +102,7 @@ export const deletePet = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOneAndDelete({ _id: req.params.petId, owner: req.user._id });
+    const pet = await Pet.findOneAndDelete({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId });
 
     if (!pet) {
       return res.status(404).json({ message: "Pet not found" });
@@ -121,7 +121,7 @@ export const listVaccinations = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id }).select("vaccinations");
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId }).select("vaccinations");
     if (!pet) {
       return res.status(404).json({ message: "Pet not found" });
     }
@@ -139,7 +139,7 @@ export const createVaccination = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId });
     if (!pet) {
       return res.status(404).json({ message: "Pet not found" });
     }
@@ -159,7 +159,7 @@ export const updateVaccination = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId });
     const vaccination = pet?.vaccinations.id(req.params.vaccinationId);
     if (!vaccination) {
       return res.status(404).json({ message: "Vaccination not found" });
@@ -180,7 +180,7 @@ export const deleteVaccination = async (req, res) => {
   }
 
   try {
-    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id });
+    const pet = await Pet.findOne({ _id: req.params.petId, owner: req.user._id, tenantId: req.tenantId });
     const vaccination = pet?.vaccinations.id(req.params.vaccinationId);
     if (!vaccination) {
       return res.status(404).json({ message: "Vaccination not found" });

@@ -9,7 +9,7 @@ export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email, tenantId: req.tenantId });
     if (existingUser) {
       return res.status(400).json({
         message: "User already exists",
@@ -23,6 +23,7 @@ const user = await User.create({
   name,
   email,
   password: hashedPassword,
+  tenantId: req.tenantId,
 
   isVerified: false,
 
@@ -54,6 +55,7 @@ export const verifyEmail = async (req, res) => {
     const { token } = req.params;
 
     const user = await User.findOne({
+      tenantId: req.tenantId,
       verificationToken: token,
       verificationTokenExpires: { $gt: Date.now() },
     });
@@ -86,7 +88,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, tenantId: req.tenantId });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }

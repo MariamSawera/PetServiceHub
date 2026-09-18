@@ -7,6 +7,42 @@ export default {
   theme: {
     extend: {
       colors: {
+        surface: {
+          DEFAULT: 'var(--theme-surface)',
+          muted: 'var(--theme-surface-muted)',
+          strong: 'var(--theme-surface-strong)',
+        },
+        ink: {
+          DEFAULT: 'var(--theme-text)',
+          strong: 'var(--theme-text-strong)',
+          muted: 'var(--theme-text-muted)',
+          soft: 'var(--theme-text-soft)',
+        },
+        success: {
+          DEFAULT: 'var(--theme-success)',
+          soft: 'var(--theme-success-soft)',
+        },
+        warning: {
+          DEFAULT: 'var(--theme-warning)',
+          soft: 'var(--theme-warning-soft)',
+        },
+        danger: {
+          DEFAULT: 'var(--theme-danger)',
+          soft: 'var(--theme-danger-soft)',
+        },
+        info: {
+          DEFAULT: 'var(--theme-info)',
+          soft: 'var(--theme-info-soft)',
+        },
+        map: {
+          line: 'var(--theme-map-line)',
+          fill: 'var(--theme-map-fill)',
+        },
+        hero: {
+          start: 'var(--theme-hero-start)',
+          end: 'var(--theme-hero-end)',
+        },
+        'brand-mark': 'var(--theme-brand-mark)',
         slate: {
           50: 'var(--theme-surface-muted)',
           100: 'var(--theme-border-soft)',

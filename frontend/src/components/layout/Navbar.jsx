@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Bell, PawPrint, Menu, X } from 'lucide-react';
 import { useAuth } from '../../features/Auth/context/useAuth';
+import { useTenant } from '../../app/providers/tenantContext';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../features/Notifications/services/notificationApi';
 
 const NAV_LINKS = [
@@ -17,6 +18,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { tenantSlug, setTenantSlug } = useTenant();
   const [open, setOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -50,6 +52,11 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const handleTenantChange = () => {
+    const nextTenant = window.prompt('Enter your workspace slug', tenantSlug);
+    if (nextTenant) setTenantSlug(nextTenant);
+  };
+
   const handleNotificationClick = async (notification) => {
     if (!notification.readAt) {
       await markNotificationRead(notification._id).catch(() => {});
@@ -70,7 +77,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white backdrop-blur border-b border-slate-100">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-12">
         {/* Logo */}
-<Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-[#0B8F87]">   
+<Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-brand-mark">
        <PawPrint size={24} className="text-teal-600" fill="currentColor" strokeWidth={0} />
           PawCare
         </Link>
@@ -113,6 +120,7 @@ export default function Navbar() {
                 {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} />}
               </div>
               <Link to={user.role === 'provider' ? '/provider/dashboard' : '/profile'} className="text-sm font-semibold text-slate-700 hover:text-teal-600">Hi, {user.name || 'User'}</Link>
+              <button type="button" onClick={handleTenantChange} className="max-w-32 truncate rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">{tenantSlug}</button>
               <button
                 type="button"
                 onClick={handleLogout}
@@ -174,6 +182,7 @@ export default function Navbar() {
                 </button>
                 {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} mobile />}
                 <div className="text-sm font-semibold text-slate-700">Hi, {user.name || 'User'}</div>
+                <button type="button" onClick={handleTenantChange} className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">Workspace: {tenantSlug}</button>
                 <button
                   type="button"
                   onClick={() => {
