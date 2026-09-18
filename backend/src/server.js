@@ -12,6 +12,8 @@ import clinicRoutes from "./routes/clinic.routes.js";
 import appointmentRoutes from "./routes/appointment.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import reminderRoutes from "./routes/reminder.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
+import { createVaccinationNotifications } from "./services/notification.service.js";
 
 
 
@@ -35,6 +37,7 @@ app.use("/api/clinics", clinicRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reminders", reminderRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 app.get("/api/health", (req, res) => {
@@ -45,6 +48,10 @@ app.get("/api/health", (req, res) => {
 connectDB()
   .then(() => {
     console.log("Database connected ✅");
+    createVaccinationNotifications().catch((error) => console.error("Initial vaccination notification sweep failed", error));
+    setInterval(() => {
+      createVaccinationNotifications().catch((error) => console.error("Vaccination notification sweep failed", error));
+    }, 24 * 60 * 60 * 1000);
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => {

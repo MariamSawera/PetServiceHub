@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Appointment from "../models/Appointment.js";
 import Clinic from "../models/Clinic.js";
 import Pet from "../models/Pet.js";
+import { createAppointmentNotification } from "../services/notification.service.js";
 
 const invalidId = (id) => !mongoose.isValidObjectId(id);
 
@@ -22,6 +23,8 @@ export const createAppointment = async (req, res) => {
     if (!existingClinic) return res.status(404).json({ message: "Clinic not found" });
 
     const appointment = await Appointment.create({ user: req.user._id, pet, clinic, service, date, time, notes });
+    createAppointmentNotification({ ...appointment.toObject(), pet: ownedPet }, "appointment_created")
+      .catch((error) => console.error("create appointment notification error", error));
     return res.status(201).json(await appointmentQuery(Appointment.findById(appointment._id)));
   } catch (error) {
     console.error("createAppointment error", error);
@@ -56,7 +59,20 @@ export const updateAppointmentStatus = async (req, res) => {
   if (!allowedStatuses.includes(req.body.status)) return res.status(400).json({ message: "Invalid appointment status" });
   try {
     const clinics = await Clinic.find({ owner: req.user._id }).select("_id");
-    const appointment = await appointmentQuery(Appointment.findOneAndUpdate({ _id: req.params.appointmentId, clinic: { $in: clinics.map((clinic) => clinic._id) } }, { status: req.body.status }, { new: true, runValidators: true }));
+    const appointmentToUpdate = await Appointment.findOne({ _id: req.params.appointmentId, clinic: { $in: clinics.map((clinic) => clinic._id) } }).populate("pet", "name");
+    if (!appointmentToUpdate) return res.status(404).json({ message: "Appointment not found" });
+    const previousStatus = appointmentToUpdate.status;
+    appointmentToUpdate.status = req.body.status;
+    await appointmentToUpdate.save();
+    if (previousStatus !== req.body.status) {
+      createAppointmentNotification(appointmentToUpdate, `appointment_${req.body.status}`)
+        .catch((error) => console.error("appointment status notification error", error));
+      if (req.body.status === "completed") {
+        createAppointmentNotification(appointmentToUpdate, "review_due")
+          .catch((error) => console.error("review notification error", error));
+      }
+    }
+    const appointment = await appointmentQuery(Appointment.findById(appointmentToUpdate._id));
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
     return res.json(appointment);
   } catch (error) { console.error("updateAppointmentStatus error", error); return res.status(400).json({ message: "Could not update appointment" }); }
@@ -71,6 +87,8 @@ export const cancelAppointment = async (req, res) => {
       { new: true, runValidators: true }
     ));
     if (!appointment) return res.status(404).json({ message: "Appointment not found or cannot be cancelled" });
+    createAppointmentNotification(appointment, "appointment_cancelled")
+      .catch((error) => console.error("cancel appointment notification error", error));
     return res.json(appointment);
   } catch (error) { console.error("cancelAppointment error", error); return res.status(500).json({ message: "Server Error" }); }
 };
