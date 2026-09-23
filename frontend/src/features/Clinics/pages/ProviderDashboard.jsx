@@ -52,7 +52,7 @@ export default function ProviderDashboard() {
             </div>
           </div>
           {nextAppointment && <div className="absolute right-8 top-8 z-20 hidden w-72 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-lg shadow-teal-900/10 backdrop-blur lg:block"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600"><CalendarDays size={22} /></span><div className="min-w-0"><p className="text-sm font-bold text-teal-600">Next appointment</p><p className="mt-1 truncate text-base font-black text-slate-800">{nextAppointment.pet?.name || 'Patient visit'}{nextAppointment.pet?.species ? ` (${nextAppointment.pet.species})` : ''}</p><p className="mt-1 text-xs font-semibold text-slate-500">{formatAppointmentDate(nextAppointment)} · {nextAppointment.service}</p></div><ArrowRight size={18} className="mt-1 shrink-0 text-teal-500" /></div></div>}
-          <img src={dashboardImage} alt="Veterinarian caring for a dog and cat" className="pointer-events-none absolute bottom-[-3%] right-[-3%] z-0 hidden h-[108%] w-[55%] object-contain object-bottom lg:block" />
+          <img src={dashboardImage} alt="Veterinarian caring for a dog and cat" className="pointer-events-none absolute bottom-[6%] right-[-3%] z-0 hidden h-[108%] w-[55%] object-contain object-bottom lg:block" />
           <div className="absolute -right-20 -top-20 -z-0 h-64 w-64 rounded-full bg-teal-100/60 blur-3xl" />
         </section>
 
