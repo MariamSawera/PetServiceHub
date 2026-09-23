@@ -1,87 +1,76 @@
-import { useEffect, useState } from 'react';
-import { Building2, Pencil, Plus, Trash2 } from 'lucide-react';
-import ClinicLocationPicker from '../components/ClinicLocationPicker';
-import { createClinic, deleteClinic, getOwnedClinics, updateClinic } from '../services/clinicApi';
+import { createElement, useEffect, useState } from 'react';
+import { ArrowRight, Building2, CalendarDays, CheckCircle2, ClipboardPlus, Clock3, UsersRound } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { getProviderAppointments } from '../../Appointments/services/appointmentApi';
+import { getOwnedClinics } from '../services/clinicApi';
+import dashboardImage from '../../../assets/vets-dashboard-female.png';
 
-const EMPTY_FORM = { name: '', description: '', city: '', address: '', phone: '', specialty: '', longitude: '', latitude: '' };
-
-const toPayload = (form) => ({
-  name: form.name,
-  description: form.description,
-  city: form.city,
-  address: form.address,
-  phone: form.phone,
-  specialties: form.specialty ? [form.specialty] : [],
-  location: { type: 'Point', coordinates: [Number(form.longitude), Number(form.latitude)] },
-});
+const formatAppointmentDate = (appointment) => `${new Date(appointment.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${appointment.time}`;
 
 export default function ProviderDashboard() {
   const [clinics, setClinics] = useState([]);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editingId, setEditingId] = useState(null);
+  const [appointments, setAppointments] = useState([]);
   const [state, setState] = useState('loading');
-  const [message, setMessage] = useState('');
 
-  const loadClinics = () => getOwnedClinics().then(({ data }) => { setClinics(data); setState('ready'); }).catch(() => setState('error'));
+  useEffect(() => {
+    Promise.all([getOwnedClinics(), getProviderAppointments()])
+      .then(([clinicResponse, appointmentResponse]) => {
+        setClinics(clinicResponse.data);
+        setAppointments(appointmentResponse.data);
+        setState('ready');
+      })
+      .catch(() => setState('error'));
+  }, []);
 
-  useEffect(() => { loadClinics(); }, []);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setMessage('');
-    if (!form.latitude || !form.longitude) {
-      setMessage('Pick the clinic location on the map before saving.');
-      return;
-    }
-    try {
-      if (editingId) await updateClinic(editingId, toPayload(form));
-      else await createClinic(toPayload(form));
-      setForm(EMPTY_FORM);
-      setEditingId(null);
-      setMessage('Clinic saved successfully.');
-      await loadClinics();
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Could not save clinic.');
-    }
-  };
-
-  const handleEdit = (clinic) => {
-    setEditingId(clinic._id);
-    setForm({ ...EMPTY_FORM, ...clinic, specialty: clinic.specialties?.[0] || '', longitude: clinic.location?.coordinates?.[0] ?? '', latitude: clinic.location?.coordinates?.[1] ?? '' });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDelete = async (clinicId) => {
-    if (!window.confirm('Delete this clinic?')) return;
-    try { await deleteClinic(clinicId); setClinics((current) => current.filter((clinic) => clinic._id !== clinicId)); }
-    catch { setMessage('Could not delete clinic.'); }
-  };
-
-  const handleChange = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
+  const upcomingAppointments = appointments
+    .filter((appointment) => appointment.status !== 'cancelled' && new Date(appointment.date) >= new Date())
+    .sort((first, second) => new Date(first.date) - new Date(second.date));
+  const nextAppointment = upcomingAppointments[0];
+  const activeAppointments = appointments.filter((appointment) => ['pending', 'confirmed'].includes(appointment.status)).length;
+  const completedAppointments = appointments.filter((appointment) => appointment.status === 'completed').length;
+  const uniqueClients = new Set(appointments.map((appointment) => appointment.user?._id || appointment.user?.email).filter(Boolean)).size;
 
   return (
-    <main className="min-h-[70vh] bg-[var(--theme-bg)] px-6 py-12 md:px-12 md:py-16">
+    <main className="min-h-[70vh] overflow-hidden bg-[var(--theme-bg)] px-6 py-8 md:px-12 md:py-12">
       <div className="mx-auto max-w-[1400px]">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">Provider workspace</p>
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-950">Your clinics</h1>
-        <p className="mt-3 text-slate-600">Create and manage the clinics your provider account owns.</p>
-        <a href="/provider/appointments" className="mt-4 inline-flex rounded-lg border border-teal-700 px-4 py-2 text-sm font-bold text-teal-800 hover:bg-teal-50">View appointments</a>
-
-        <form onSubmit={handleSubmit} className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-          <div className="flex items-center gap-3"><Building2 className="text-teal-700" /><h2 className="text-xl font-bold text-slate-950">{editingId ? 'Edit clinic' : 'Create clinic'}</h2></div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {[['name', 'Clinic name', true], ['city', 'City', true], ['address', 'Address', false], ['phone', 'Phone', false], ['specialty', 'Primary specialty', false]].map(([field, label, required]) => <label key={field} className="text-sm font-semibold text-slate-700">{label}<input required={required} type="text" value={form[field]} onChange={handleChange(field)} className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 font-normal outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label>)}
-            <label className="text-sm font-semibold text-slate-700 md:col-span-2">Description<textarea value={form.description} onChange={handleChange('description')} rows="3" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 font-normal outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label>
+        <section className="relative isolate overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-[#effcfb] via-white to-[#e7f8f7] px-7 py-8 shadow-sm md:px-12 md:py-10 lg:min-h-[430px] lg:px-14">
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/70 px-4 py-2 text-sm font-bold text-teal-700"><Building2 size={17} /> Provider Dashboard</div>
+            <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.35rem]">Welcome back, <span className="text-slate-900">Provider!</span><br /><span className="text-teal-600">Your patients are in good hands.</span></h1>
+            <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">Manage appointments, stay connected with clients, and provide the best care, all in one place.</p>
+            <div className="mt-6 grid max-w-2xl gap-3 sm:grid-cols-3">
+              <StatCard icon={CalendarDays} value={activeAppointments} label="Active appointments" color="teal" />
+              <StatCard icon={UsersRound} value={uniqueClients} label="Active clients" color="blue" />
+              <StatCard icon={CheckCircle2} value={completedAppointments} label="Completed visits" color="amber" />
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/provider/appointments" className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-teal-700"><CalendarDays size={18} /> View appointments <ArrowRight size={17} /></Link>
+              <Link to="/provider/clinics" className="inline-flex items-center gap-2 rounded-xl border-2 border-teal-500 bg-white/60 px-5 py-3 text-sm font-bold text-teal-700 hover:bg-teal-50"><Building2 size={18} /> Manage clinic profile <ArrowRight size={17} /></Link>
+            </div>
           </div>
-          <div className="mt-7"><ClinicLocationPicker latitude={form.latitude} longitude={form.longitude} onChange={({ latitude, longitude }) => setForm((current) => ({ ...current, latitude, longitude }))} /></div>
-          <details className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4"><summary className="cursor-pointer text-sm font-bold text-slate-700">Advanced location</summary><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold text-slate-700">Latitude<input type="number" step="any" value={form.latitude} onChange={handleChange('latitude')} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-normal outline-none focus:border-teal-500" /></label><label className="text-sm font-semibold text-slate-700">Longitude<input type="number" step="any" value={form.longitude} onChange={handleChange('longitude')} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-normal outline-none focus:border-teal-500" /></label></div></details>
-          {message && <p className="mt-4 text-sm font-semibold text-teal-700">{message}</p>}
-          <div className="mt-6 flex flex-wrap gap-3"><button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-bold text-white hover:bg-teal-800"><Plus size={17} />{editingId ? 'Save changes' : 'Create clinic'}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setForm(EMPTY_FORM); }} className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700">Cancel</button>}</div>
-        </form>
+          <img src={dashboardImage} alt="Veterinarian caring for a dog and cat" className="pointer-events-none absolute bottom-[-3%] right-[-5%] z-0 hidden h-[112%] w-[54%] object-contain object-bottom lg:block" />
+          <div className="absolute -right-20 -top-20 -z-0 h-64 w-64 rounded-full bg-teal-100/60 blur-3xl" />
+        </section>
 
-        {state === 'error' && <p className="mt-8 rounded-xl bg-red-50 p-5 text-sm font-semibold text-red-700">Could not load your clinics.</p>}
-        {state === 'ready' && <div className="mt-8 grid gap-4 md:grid-cols-2">{clinics.map((clinic) => <article key={clinic._id} className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div><h2 className="font-bold text-slate-950">{clinic.name}</h2><p className="mt-1 text-sm text-slate-500">{clinic.city}</p><p className="mt-2 text-xs text-teal-700">Owner: your provider account</p></div><div className="flex gap-2"><button type="button" onClick={() => handleEdit(clinic)} aria-label={`Edit ${clinic.name}`} className="rounded-lg p-2 text-slate-500 hover:bg-teal-50 hover:text-teal-700"><Pencil size={17} /></button><button type="button" onClick={() => handleDelete(clinic._id)} aria-label={`Delete ${clinic.name}`} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 size={17} /></button></div></article>)}</div>}
+        {state === 'error' && <p className="mt-6 rounded-xl bg-red-50 p-5 text-sm font-semibold text-red-700">Could not load your dashboard data.</p>}
+        {state === 'loading' && <p className="mt-6 text-sm text-slate-500">Loading your dashboard...</p>}
+        {state === 'ready' && <section className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex items-center justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-[0.16em] text-teal-700">Next appointment</p><h2 className="mt-2 text-2xl font-black text-slate-950">{nextAppointment ? nextAppointment.pet?.name || 'Patient visit' : 'Your schedule is clear'}</h2></div><span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold capitalize text-teal-700">{nextAppointment?.status || 'Available'}</span></div>
+            {nextAppointment ? <div className="mt-6 flex flex-wrap items-center gap-5 border-t border-slate-100 pt-5 text-sm text-slate-600"><span className="flex items-center gap-2 font-semibold"><CalendarDays size={18} className="text-teal-600" />{formatAppointmentDate(nextAppointment)}</span><span className="flex items-center gap-2"><Clock3 size={18} className="text-teal-600" />{nextAppointment.service}</span></div> : <p className="mt-5 text-sm text-slate-500">New bookings will appear here as soon as pet parents schedule a visit.</p>}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><ClipboardPlus size={22} /></div><h2 className="mt-5 text-xl font-black text-slate-950">Your clinics</h2><p className="mt-2 text-sm leading-6 text-slate-600">{clinics.length ? `${clinics.length} clinic${clinics.length === 1 ? '' : 's'} connected to your provider account.` : 'Set up your first clinic to start accepting appointments.'}</p><Link to="/provider/clinics" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800">Open clinics <ArrowRight size={16} /></Link></div>
+        </section>}
       </div>
     </main>
   );
+}
+
+function StatCard({ icon: StatIcon, value, label, color }) {
+  const colors = {
+    teal: 'bg-teal-50 text-teal-600',
+    blue: 'bg-sky-50 text-sky-500',
+    amber: 'bg-amber-50 text-amber-500',
+  };
+  return <div className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur"><div className={`flex h-10 w-10 items-center justify-center rounded-full ${colors[color]}`}>{createElement(StatIcon, { size: 20 })}</div><p className="mt-4 text-2xl font-black text-slate-900">{value}</p><p className="mt-1 text-xs font-semibold text-slate-500">{label}</p></div>;
 }

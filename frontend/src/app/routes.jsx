@@ -9,6 +9,7 @@ import PetsPage from '../features/Pets/pages/PetsPage';
 import FindVetsPage from '../features/Clinics/pages/FindVetsPage';
 import ClinicDetailsPage from '../features/Clinics/pages/ClinicDetailsPage';
 import ProviderDashboard from '../features/Clinics/pages/ProviderDashboard';
+import ProviderClinicsPage from '../features/Clinics/pages/ProviderClinicsPage';
 import ProviderRoute from '../components/routing/ProviderRoute';
 import UserRoute from '../components/routing/UserRoute';
 import BookingPage from '../features/Appointments/pages/BookingPage';
@@ -36,6 +37,7 @@ export default function AppRoutes() {
 				<Route path="/profile" element={<ProfilePage />} />
 				<Route element={<ProviderRoute />}>
 					<Route path="/provider/dashboard" element={<ProviderDashboard />} />
+					<Route path="/provider/clinics" element={<ProviderClinicsPage />} />
 					<Route path="/provider/appointments" element={<ProviderAppointmentsPage />} />
 				</Route>
 				<Route element={<UserRoute />}>

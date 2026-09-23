@@ -81,6 +81,7 @@ export default function ProfilePage() {
     try {
       const { data } = await saveProfile(form);
       setForm({ ...EMPTY_PROFILE, ...data });
+      window.dispatchEvent(new CustomEvent('profile-updated', { detail: data }));
       setStatus({ type: 'success', message: 'Profile saved successfully.' });
     } catch {
       setStatus({ type: 'error', message: 'Could not save your profile.' });

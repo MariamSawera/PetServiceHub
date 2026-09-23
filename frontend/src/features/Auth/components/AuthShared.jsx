@@ -4,7 +4,7 @@ import { ShieldCheck, Lock, Sparkles } from 'lucide-react';
 export function PawCareLogo() {
   return (
     <div className="flex items-center gap-2 text-[22px] font-bold text-[var(--theme-text)]">
-      PawCare
+      PetHub
     </div>
   );
 }

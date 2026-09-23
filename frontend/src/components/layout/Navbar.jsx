@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Bell,
+  Building2,
   CalendarDays,
   ChevronDown,
   Grid2X2,
@@ -20,6 +21,7 @@ import {
 import { useAuth } from '../../features/Auth/context/useAuth';
 import { useTenant } from '../../app/providers/tenantContext';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../features/Notifications/services/notificationApi';
+import { getProfile } from '../../features/Profile/services/profileApi';
 import pawLogo from '../../assets/paw.png';
 
 const GUEST_LINKS = [
@@ -42,6 +44,7 @@ const PROVIDER_LINKS = [
   { label: 'Home', to: '/provider/dashboard', icon: House },
   { label: 'Services', to: '/services', icon: Grid2X2 },
   { label: 'Appointments', to: '/provider/appointments', icon: CalendarDays },
+  { label: 'Clinics', to: '/provider/clinics', icon: Building2 },
   { label: 'My Profile', to: '/profile', icon: UserRound },
   { label: 'About', to: '/about', icon: Info },
   { label: 'Contact', to: '/contact', icon: Mail },
@@ -56,6 +59,7 @@ export default function Navbar() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profile, setProfile] = useState(null);
   const notificationRef = useRef(null);
   const mobileNotificationRef = useRef(null);
   const profileRef = useRef(null);
@@ -76,6 +80,29 @@ export default function Navbar() {
   }, [user]);
 
   useEffect(() => {
+    let active = true;
+
+    if (!user) return undefined;
+
+    const loadProfile = () => getProfile()
+      .then(({ data }) => {
+        if (active) setProfile(data);
+      })
+      .catch(() => {
+        if (active) setProfile(null);
+      });
+
+    const handleProfileUpdated = (event) => setProfile(event.detail);
+    loadProfile();
+    window.addEventListener('profile-updated', handleProfileUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener('profile-updated', handleProfileUpdated);
+    };
+  }, [user]);
+
+  useEffect(() => {
     const handleOutsideClick = (event) => {
       const clickedNotification = notificationRef.current?.contains(event.target)
         || mobileNotificationRef.current?.contains(event.target);
@@ -90,7 +117,8 @@ export default function Navbar() {
   const visibleNotifications = user ? notifications : [];
   const visibleUnreadCount = user ? unreadCount : 0;
   const visibleNavLinks = user?.role === 'provider' ? PROVIDER_LINKS : user ? USER_LINKS : GUEST_LINKS;
-  const displayName = user?.name || (user?.role === 'provider' ? 'Provider' : 'User');
+  const displayName = user?.name || (user?.role === 'provider' ? 'Service provider' : 'User');
+  const avatar = user ? profile?.avatar : undefined;
   const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
   const handleLogout = async () => {
@@ -124,7 +152,7 @@ export default function Navbar() {
   return (
     <header className={`sticky top-0 z-50 border-b bg-white/95 backdrop-blur ${isProvider ? 'border-indigo-100' : 'border-teal-100'}`}>
       <div className="mx-auto flex min-h-[76px] max-w-[1400px] items-center justify-between gap-5 px-5 md:px-10">
-        <Link to="/" className="flex shrink-0 items-center gap-2.5">
+        <Link to={isProvider ? '/provider/dashboard' : '/'} className="flex shrink-0 items-center gap-2.5">
           <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isProvider ? 'bg-indigo-100 text-indigo-600' : 'bg-teal-100 text-teal-700'}`}>
             <img src={pawLogo} alt="" className="h-9 w-9 object-contain" />
           </span>
@@ -175,11 +203,11 @@ export default function Navbar() {
               </div>
               <div ref={profileRef} className="relative">
                 <button type="button" onClick={() => setProfileOpen((current) => !current)} className={`flex items-center gap-2 rounded-full px-2 py-1.5 ${isProvider ? 'bg-indigo-50' : 'bg-teal-50'}`} aria-expanded={profileOpen}>
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-black text-white ${isProvider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>
-                  <span className="max-w-28 truncate text-xs font-bold text-slate-700">{isProvider ? (user.clinicName || 'Your Clinic') : `Hi, ${displayName}`}</span>
+                  <Avatar avatar={avatar} initials={initials} provider={isProvider} />
+                  <span className="max-w-32 truncate text-xs font-bold text-slate-700">{displayName}</span>
                   <ChevronDown size={15} className="text-slate-500" />
                 </button>
-                {profileOpen && <ProfilePanel user={user} tenantSlug={tenantSlug} onTenantChange={handleTenantChange} onLogout={handleLogout} />}
+                {profileOpen && <ProfilePanel user={user} avatar={avatar} tenantSlug={tenantSlug} onTenantChange={handleTenantChange} onLogout={handleLogout} />}
               </div>
             </>
           ) : (
@@ -233,7 +261,7 @@ export default function Navbar() {
                   </button>
                   {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} mobile />}
                 </div>
-                <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700"><span className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-black text-white ${isProvider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>{displayName}</div>
+                <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700"><Avatar avatar={avatar} initials={initials} provider={isProvider} />{displayName}</div>
                 <button type="button" onClick={handleTenantChange} className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">Workspace: {tenantSlug}</button>
                 <button
                   type="button"
@@ -263,13 +291,22 @@ export default function Navbar() {
   );
 }
 
-function ProfilePanel({ user, tenantSlug, onTenantChange, onLogout }) {
+function Avatar({ avatar, initials, provider, small = false }) {
+  if (avatar) return <img src={avatar} alt="Profile" className={`${small ? 'h-8 w-8' : 'h-9 w-9'} rounded-full object-cover`} />;
+  return <span className={`flex ${small ? 'h-8 w-8' : 'h-9 w-9'} items-center justify-center rounded-full text-xs font-black text-white ${provider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>;
+}
+
+function ProfilePanel({ user, avatar, tenantSlug, onTenantChange, onLogout }) {
   const provider = user.role === 'provider';
+  const initials = (user.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   return (
     <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl shadow-slate-200/60">
       <div className={`border-b px-4 py-3 ${provider ? 'bg-indigo-50' : 'bg-teal-50'}`}>
         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{provider ? 'Provider account' : 'Pet parent account'}</p>
-        <p className="mt-1 truncate text-sm font-black text-slate-800">{user.name || 'User'}</p>
+        <div className="mt-2 flex items-center gap-2">
+          <Avatar avatar={avatar} initials={initials} provider={provider} small />
+          <p className="truncate text-sm font-black text-slate-800">{user.name || 'User'}</p>
+        </div>
       </div>
       <div className="p-2">
         <Link to={provider ? '/profile' : '/profile'} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700">
