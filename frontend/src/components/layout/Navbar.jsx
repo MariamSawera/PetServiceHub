@@ -5,7 +5,7 @@ import {
   CalendarDays,
   ChevronDown,
   Grid2X2,
-  HeartPulse,
+  House,
   Info,
   LogOut,
   Mail,
@@ -22,7 +22,7 @@ import { useTenant } from '../../app/providers/tenantContext';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../features/Notifications/services/notificationApi';
 
 const GUEST_LINKS = [
-  { label: 'Home', to: '/', icon: HeartPulse },
+  { label: 'Home', to: '/', icon: House },
   { label: 'Services', to: '/services', icon: Grid2X2 },
   { label: 'Community', to: '/community', icon: UsersRound },
   { label: 'Vets', to: '/find-vets', icon: Stethoscope },
@@ -38,7 +38,7 @@ const USER_LINKS = [
 ];
 
 const PROVIDER_LINKS = [
-  { label: 'Home', to: '/provider/dashboard', icon: HeartPulse },
+  { label: 'Home', to: '/provider/dashboard', icon: House },
   { label: 'Services', to: '/services', icon: Grid2X2 },
   { label: 'Appointments', to: '/provider/appointments', icon: CalendarDays },
   { label: 'My Profile', to: '/profile', icon: UserRound },
