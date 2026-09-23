@@ -1,18 +1,49 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Bell, PawPrint, Menu, X } from 'lucide-react';
+import {
+  Bell,
+  CalendarDays,
+  ChevronDown,
+  Grid2X2,
+  HeartPulse,
+  Info,
+  LogOut,
+  Mail,
+  Menu,
+  PawPrint,
+  Search,
+  Stethoscope,
+  UserRound,
+  UsersRound,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../../features/Auth/context/useAuth';
 import { useTenant } from '../../app/providers/tenantContext';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../features/Notifications/services/notificationApi';
 
-const NAV_LINKS = [
-  { label: 'Home', to: '/' },
-  { label: 'Services', to: '/services' },
-  { label: 'Community', to: '/community' },
-  { label: 'Vets', to: '/find-vets' },
-  { label: 'About', to: '/about' },
-  { label: 'Contact', to: '/contact' },
-  { label: 'My Pets', to: '/pets' },
+const GUEST_LINKS = [
+  { label: 'Home', to: '/', icon: HeartPulse },
+  { label: 'Services', to: '/services', icon: Grid2X2 },
+  { label: 'Community', to: '/community', icon: UsersRound },
+  { label: 'Vets', to: '/find-vets', icon: Stethoscope },
+  { label: 'About', to: '/about', icon: Info },
+  { label: 'Contact', to: '/contact', icon: Mail },
+];
+
+const USER_LINKS = [
+  ...GUEST_LINKS.slice(0, 3),
+  { label: 'My Pets', to: '/pets', icon: PawPrint },
+  { label: 'Appointments', to: '/appointments', icon: CalendarDays },
+  ...GUEST_LINKS.slice(4),
+];
+
+const PROVIDER_LINKS = [
+  { label: 'Home', to: '/provider/dashboard', icon: HeartPulse },
+  { label: 'Services', to: '/services', icon: Grid2X2 },
+  { label: 'Appointments', to: '/provider/appointments', icon: CalendarDays },
+  { label: 'My Profile', to: '/profile', icon: UserRound },
+  { label: 'About', to: '/about', icon: Info },
+  { label: 'Contact', to: '/contact', icon: Mail },
 ];
 
 export default function Navbar() {
@@ -20,9 +51,13 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { tenantSlug, setTenantSlug } = useTenant();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notificationRef = useRef(null);
+  const mobileNotificationRef = useRef(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     if (!user) return undefined;
@@ -38,14 +73,24 @@ export default function Navbar() {
     const interval = window.setInterval(loadNotifications, 60000);
     return () => window.clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      const clickedNotification = notificationRef.current?.contains(event.target)
+        || mobileNotificationRef.current?.contains(event.target);
+      if (!clickedNotification) setNotificationOpen(false);
+      if (!profileRef.current?.contains(event.target)) setProfileOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsideClick);
+    return () => document.removeEventListener('pointerdown', handleOutsideClick);
+  }, []);
+
   const visibleNotifications = user ? notifications : [];
   const visibleUnreadCount = user ? unreadCount : 0;
-  const visibleNavLinks = user
-    ? [
-        ...NAV_LINKS.filter((link) => user.role === 'provider' ? link.to !== '/pets' : true),
-        { label: 'Appointments', to: user.role === 'provider' ? '/provider/appointments' : '/appointments' },
-      ]
-    : NAV_LINKS.filter((link) => link.to !== '/pets');
+  const visibleNavLinks = user?.role === 'provider' ? PROVIDER_LINKS : user ? USER_LINKS : GUEST_LINKS;
+  const displayName = user?.name || (user?.role === 'provider' ? 'Provider' : 'User');
+  const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
   const handleLogout = async () => {
     await logout();
@@ -73,44 +118,52 @@ export default function Navbar() {
     setUnreadCount(0);
   };
 
+  const isProvider = user?.role === 'provider';
+
   return (
-    <header className="sticky top-0 z-50 bg-white backdrop-blur border-b border-slate-100">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-12">
-        {/* Logo */}
-<Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-brand-mark">
-       <PawPrint size={24} className="text-teal-600" fill="currentColor" strokeWidth={0} />
-          PawCare
+    <header className={`sticky top-0 z-50 border-b bg-white/95 backdrop-blur ${isProvider ? 'border-indigo-100' : 'border-teal-100'}`}>
+      <div className="mx-auto flex min-h-[76px] max-w-[1400px] items-center justify-between gap-5 px-5 md:px-10">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5">
+          <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isProvider ? 'bg-indigo-100 text-indigo-600' : 'bg-teal-100 text-teal-700'}`}>
+            <PawPrint size={27} fill="currentColor" strokeWidth={0} />
+          </span>
+          <span className="hidden sm:block">
+            <span className="block text-[19px] font-black tracking-tight text-slate-900">PetService<span className={isProvider ? 'text-indigo-600' : 'text-teal-600'}>Hub</span></span>
+            <span className="block text-[10px] font-semibold tracking-wide text-slate-400">Healthy Pets <span className="mx-1 text-teal-400">•</span> Happy Lives</span>
+          </span>
         </Link>
 
-        {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
           {visibleNavLinks.map((link) => (
             <NavLink
               key={link.to}
               end={link.to === '/'}
               to={link.to}
               className={({ isActive }) =>
-                `border-b-2 border-transparent pb-2 text-sm font-medium transition-colors ${
+                `flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${
                   isActive
-                    ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
-                    : 'text-slate-600 hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]'
+                    ? `${isProvider ? 'bg-indigo-600 text-white' : 'bg-teal-600 text-white'}`
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`
               }
             >
+              <link.icon size={15} strokeWidth={2.5} />
               {link.label}
             </NavLink>
           ))}
         </nav>
 
-        {/* Desktop auth action */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <>
-              <div className="relative">
+              <button type="button" className="rounded-full p-2.5 text-slate-500 hover:bg-slate-50 hover:text-teal-700" aria-label="Search">
+                <Search size={19} />
+              </button>
+              <div ref={notificationRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setNotificationOpen((current) => !current)}
-                  className="relative rounded-full p-2 text-slate-600 transition-colors hover:bg-teal-50 hover:text-teal-700"
+                  className="relative rounded-full p-2.5 text-slate-500 transition-colors hover:bg-teal-50 hover:text-teal-700"
                   aria-label={`Notifications${visibleUnreadCount ? `, ${visibleUnreadCount} unread` : ''}`}
                   aria-expanded={notificationOpen}
                 >
@@ -119,30 +172,26 @@ export default function Navbar() {
                 </button>
                 {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} />}
               </div>
-              <Link to={user.role === 'provider' ? '/provider/dashboard' : '/profile'} className="text-sm font-semibold text-slate-700 hover:text-teal-600">Hi, {user.name || 'User'}</Link>
-              <button type="button" onClick={handleTenantChange} className="max-w-32 truncate rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">{tenantSlug}</button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
-              >
-                Log out
-              </button>
+              <div ref={profileRef} className="relative">
+                <button type="button" onClick={() => setProfileOpen((current) => !current)} className={`flex items-center gap-2 rounded-full px-2 py-1.5 ${isProvider ? 'bg-indigo-50' : 'bg-teal-50'}`} aria-expanded={profileOpen}>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-black text-white ${isProvider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>
+                  <span className="max-w-28 truncate text-xs font-bold text-slate-700">{isProvider ? (user.clinicName || 'Your Clinic') : `Hi, ${displayName}`}</span>
+                  <ChevronDown size={15} className="text-slate-500" />
+                </button>
+                {profileOpen && <ProfilePanel user={user} tenantSlug={tenantSlug} onTenantChange={handleTenantChange} onLogout={handleLogout} />}
+              </div>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="rounded-lg bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
-            >
-              Log in
-            </Link>
+            <>
+              <Link to="/login" className="rounded-full border border-teal-200 px-5 py-2.5 text-xs font-bold text-slate-700 transition-colors hover:border-teal-400 hover:text-teal-700">Log in</Link>
+              <Link to="/signup" className="rounded-full bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-teal-700">Sign up</Link>
+            </>
           )}
         </div>
 
-        {/* Mobile menu toggle */}
         <button
           type="button"
-          className="md:hidden text-slate-700"
+          className="rounded-lg p-2 text-slate-700 md:hidden"
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? 'Close menu' : 'Open menu'}
         >
@@ -150,9 +199,8 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu panel */}
       {open && (
-        <div className="md:hidden border-t border-slate-100 bg-white px-4 pb-6 pt-2 sm:px-6">
+        <div className="border-t border-slate-100 bg-white px-4 pb-6 pt-3 md:hidden sm:px-6">
           <nav className="flex flex-col gap-1">
             {visibleNavLinks.map((link) => (
               <NavLink
@@ -161,13 +209,14 @@ export default function Navbar() {
                 to={link.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-md border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                  `flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'border-[var(--theme-primary)] bg-teal-50 text-[var(--theme-primary)]'
-                      : 'border-transparent text-slate-600 hover:border-[var(--theme-primary)] hover:bg-slate-50'
+                      ? `${isProvider ? 'bg-indigo-50 text-indigo-700' : 'bg-teal-50 text-teal-700'}`
+                      : 'text-slate-600 hover:bg-slate-50'
                   }`
                 }
               >
+                <link.icon size={17} />
                 {link.label}
               </NavLink>
             ))}
@@ -176,12 +225,14 @@ export default function Navbar() {
           <div className="mt-4 flex flex-col gap-3">
             {user ? (
               <>
-                <button type="button" onClick={() => setNotificationOpen((current) => !current)} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-teal-50" aria-label="Open notifications">
-                  <span className="flex items-center gap-2"><Bell size={18} /> Notifications</span>
-                  {visibleUnreadCount > 0 && <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{visibleUnreadCount}</span>}
-                </button>
-                {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} mobile />}
-                <div className="text-sm font-semibold text-slate-700">Hi, {user.name || 'User'}</div>
+                <div ref={mobileNotificationRef}>
+                  <button type="button" onClick={() => setNotificationOpen((current) => !current)} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-teal-50" aria-label="Open notifications">
+                    <span className="flex items-center gap-2"><Bell size={18} /> Notifications</span>
+                    {visibleUnreadCount > 0 && <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{visibleUnreadCount}</span>}
+                  </button>
+                  {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} mobile />}
+                </div>
+                <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700"><span className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-black text-white ${isProvider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>{displayName}</div>
                 <button type="button" onClick={handleTenantChange} className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">Workspace: {tenantSlug}</button>
                 <button
                   type="button"
@@ -189,8 +240,9 @@ export default function Navbar() {
                     setOpen(false);
                     handleLogout();
                   }}
-                  className="rounded-lg border border-slate-200 px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-5 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
+                  <LogOut size={17} />
                   Log out
                 </button>
               </>
@@ -198,7 +250,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setOpen(false)}
-                className="rounded-lg bg-teal-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
+                className="rounded-full bg-teal-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-700"
               >
                 Log in
               </Link>
@@ -207,6 +259,34 @@ export default function Navbar() {
         </div>
       )}
     </header>
+  );
+}
+
+function ProfilePanel({ user, tenantSlug, onTenantChange, onLogout }) {
+  const provider = user.role === 'provider';
+  return (
+    <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl shadow-slate-200/60">
+      <div className={`border-b px-4 py-3 ${provider ? 'bg-indigo-50' : 'bg-teal-50'}`}>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{provider ? 'Provider account' : 'Pet parent account'}</p>
+        <p className="mt-1 truncate text-sm font-black text-slate-800">{user.name || 'User'}</p>
+      </div>
+      <div className="p-2">
+        <Link to={provider ? '/profile' : '/profile'} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700">
+          <UserRound size={16} /> My Profile
+        </Link>
+        <Link to={provider ? '/provider/appointments' : '/appointments'} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700">
+          <CalendarDays size={16} /> Appointments
+        </Link>
+        {!provider && <Link to="/pets" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><PawPrint size={16} /> My Pets</Link>}
+        <button type="button" onClick={onTenantChange} className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700" title="Change workspace">
+          <span>Workspace</span><span className="max-w-24 truncate text-slate-400">{tenantSlug}</span>
+        </button>
+        <div className="my-1 border-t border-slate-100" />
+        <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600">
+          <LogOut size={16} /> Log out
+        </button>
+      </div>
+    </div>
   );
 }
 

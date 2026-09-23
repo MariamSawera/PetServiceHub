@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
 .clinic-marker {
 	display: flex;
 	align-items: center;
