@@ -1,6 +1,7 @@
 import { createElement, useEffect, useState } from 'react';
 import { ArrowRight, Building2, CalendarDays, CheckCircle2, ClipboardPlus, Clock3, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../Auth/context/useAuth';
 import { getProviderAppointments } from '../../Appointments/services/appointmentApi';
 import { getOwnedClinics } from '../services/clinicApi';
 import dashboardImage from '../../../assets/vets-dashboard-female.png';
@@ -8,6 +9,7 @@ import dashboardImage from '../../../assets/vets-dashboard-female.png';
 const formatAppointmentDate = (appointment) => `${new Date(appointment.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${appointment.time}`;
 
 export default function ProviderDashboard() {
+  const { user } = useAuth();
   const [clinics, setClinics] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [state, setState] = useState('loading');
@@ -29,14 +31,15 @@ export default function ProviderDashboard() {
   const activeAppointments = appointments.filter((appointment) => ['pending', 'confirmed'].includes(appointment.status)).length;
   const completedAppointments = appointments.filter((appointment) => appointment.status === 'completed').length;
   const uniqueClients = new Set(appointments.map((appointment) => appointment.user?._id || appointment.user?.email).filter(Boolean)).size;
+  const providerName = user?.name || 'Provider';
 
   return (
     <main className="min-h-[70vh] overflow-hidden bg-[var(--theme-bg)] px-6 py-8 md:px-12 md:py-12">
       <div className="mx-auto max-w-[1400px]">
-        <section className="relative isolate overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-[#effcfb] via-white to-[#e7f8f7] px-7 py-8 shadow-sm md:px-12 md:py-10 lg:min-h-[430px] lg:px-14">
-          <div className="relative z-10 max-w-2xl">
+        <section className="relative isolate overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-[#effcfb] via-white to-[#e7f8f7] px-7 py-8 shadow-sm md:px-12 md:py-10 lg:min-h-[500px] lg:px-14">
+          <div className="relative z-10 max-w-2xl lg:max-w-[58%]">
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/70 px-4 py-2 text-sm font-bold text-teal-700"><Building2 size={17} /> Provider Dashboard</div>
-            <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.35rem]">Welcome back, <span className="text-slate-900">Provider!</span><br /><span className="text-teal-600">Your patients are in good hands.</span></h1>
+            <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.35rem]">Welcome back, <span className="text-slate-900">{providerName}!</span><br /><span className="text-teal-600">Your patients are in good hands.</span></h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">Manage appointments, stay connected with clients, and provide the best care, all in one place.</p>
             <div className="mt-6 grid max-w-2xl gap-3 sm:grid-cols-3">
               <StatCard icon={CalendarDays} value={activeAppointments} label="Active appointments" color="teal" />
@@ -48,7 +51,8 @@ export default function ProviderDashboard() {
               <Link to="/provider/clinics" className="inline-flex items-center gap-2 rounded-xl border-2 border-teal-500 bg-white/60 px-5 py-3 text-sm font-bold text-teal-700 hover:bg-teal-50"><Building2 size={18} /> Manage clinic profile <ArrowRight size={17} /></Link>
             </div>
           </div>
-          <img src={dashboardImage} alt="Veterinarian caring for a dog and cat" className="pointer-events-none absolute bottom-[-3%] right-[-5%] z-0 hidden h-[112%] w-[54%] object-contain object-bottom lg:block" />
+          {nextAppointment && <div className="absolute right-8 top-8 z-20 hidden w-72 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-lg shadow-teal-900/10 backdrop-blur lg:block"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600"><CalendarDays size={22} /></span><div className="min-w-0"><p className="text-sm font-bold text-teal-600">Next appointment</p><p className="mt-1 truncate text-base font-black text-slate-800">{nextAppointment.pet?.name || 'Patient visit'}{nextAppointment.pet?.species ? ` (${nextAppointment.pet.species})` : ''}</p><p className="mt-1 text-xs font-semibold text-slate-500">{formatAppointmentDate(nextAppointment)} · {nextAppointment.service}</p></div><ArrowRight size={18} className="mt-1 shrink-0 text-teal-500" /></div></div>}
+          <img src={dashboardImage} alt="Veterinarian caring for a dog and cat" className="pointer-events-none absolute bottom-[-3%] right-[-3%] z-0 hidden h-[108%] w-[55%] object-contain object-bottom lg:block" />
           <div className="absolute -right-20 -top-20 -z-0 h-64 w-64 rounded-full bg-teal-100/60 blur-3xl" />
         </section>
 

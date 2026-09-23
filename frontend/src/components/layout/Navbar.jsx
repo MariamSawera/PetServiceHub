@@ -158,7 +158,7 @@ export default function Navbar() {
           </span>
           <span className="hidden sm:block">
             <span className="block text-[19px] font-black tracking-tight text-slate-900">PetService<span className={isProvider ? 'text-indigo-600' : 'text-teal-600'}>Hub</span></span>
-            <span className="block text-[10px] font-semibold tracking-wide text-slate-400">Healthy Pets <span className="mx-1 text-teal-400">•</span> Happy Lives</span>
+            {/* <span className="block text-[10px] font-semibold tracking-wide text-slate-400">Healthy Pets <span className="mx-1 text-teal-400">•</span> Happy Lives</span> */}
           </span>
         </Link>
 
