@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../../features/Auth/context/useAuth';
 import { useTenant } from '../../app/providers/tenantContext';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../features/Notifications/services/notificationApi';
+import pawLogo from '../../assets/paw.png';
 
 const GUEST_LINKS = [
   { label: 'Home', to: '/', icon: House },
@@ -125,7 +126,7 @@ export default function Navbar() {
       <div className="mx-auto flex min-h-[76px] max-w-[1400px] items-center justify-between gap-5 px-5 md:px-10">
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
           <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isProvider ? 'bg-indigo-100 text-indigo-600' : 'bg-teal-100 text-teal-700'}`}>
-            <PawPrint size={27} fill="currentColor" strokeWidth={0} />
+            <img src={pawLogo} alt="" className="h-9 w-9 object-contain" />
           </span>
           <span className="hidden sm:block">
             <span className="block text-[19px] font-black tracking-tight text-slate-900">PetService<span className={isProvider ? 'text-indigo-600' : 'text-teal-600'}>Hub</span></span>
