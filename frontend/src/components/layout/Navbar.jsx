@@ -55,7 +55,7 @@ const PROVIDER_LINKS = [
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { tenantSlug, setTenantSlug } = useTenant();
+  const { tenantSlug } = useTenant(); //removed , setTenantSlug
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -128,10 +128,10 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const handleTenantChange = () => {
-    const nextTenant = window.prompt('Enter your workspace slug', tenantSlug);
-    if (nextTenant) setTenantSlug(nextTenant);
-  };
+  // const handleTenantChange = () => {
+  //   const nextTenant = window.prompt('Enter your workspace slug', tenantSlug);
+  //   if (nextTenant) setTenantSlug(nextTenant);
+  // };
 
   const handleNotificationClick = async (notification) => {
     if (!notification.readAt) {
@@ -209,7 +209,7 @@ export default function Navbar() {
                   <span className="max-w-32 truncate text-xs font-bold text-slate-700">{displayName}</span>
                   <ChevronDown size={15} className="text-slate-500" />
                 </button>
-                {profileOpen && <ProfilePanel user={user} avatar={avatar} tenantSlug={tenantSlug} onTenantChange={handleTenantChange} onLogout={handleLogout} />}
+                {profileOpen && <ProfilePanel user={user} avatar={avatar} tenantSlug={tenantSlug}  onLogout={handleLogout} />}
               </div>
             </>
           ) : (
@@ -264,7 +264,7 @@ export default function Navbar() {
                   {notificationOpen && <NotificationPanel notifications={visibleNotifications} onNotificationClick={handleNotificationClick} onMarkAllRead={handleMarkAllRead} mobile />}
                 </div>
                 <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700"><Avatar avatar={avatar} initials={initials} provider={isProvider} />{displayName}</div>
-                <button type="button" onClick={handleTenantChange} className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">Workspace: {tenantSlug}</button>
+                {/* <button type="button" onClick={handleTenantChange} className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:border-teal-300 hover:text-teal-700" title="Change workspace">Workspace: {tenantSlug}</button> */}
                 <button
                   type="button"
                   onClick={() => {
@@ -298,7 +298,7 @@ function Avatar({ avatar, initials, provider, small = false }) {
   return <span className={`flex ${small ? 'h-8 w-8' : 'h-9 w-9'} items-center justify-center rounded-full text-xs font-black text-white ${provider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>;
 }
 
-function ProfilePanel({ user, avatar, tenantSlug, onTenantChange, onLogout }) {
+function ProfilePanel({ user, avatar,tenantSlug,  onLogout }) { // onTenantChange,
   const provider = user.role === 'provider';
   const initials = (user.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   return (
@@ -318,9 +318,15 @@ function ProfilePanel({ user, avatar, tenantSlug, onTenantChange, onLogout }) {
           <CalendarDays size={16} /> Appointments
         </Link>
         {!provider && <Link to="/pets" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><PawPrint size={16} /> My Pets</Link>}
-        <button type="button" onClick={onTenantChange} className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700" title="Change workspace">
+        {/* <button type="button" onClick={onTenantChange} className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700" title="Change workspace">
           <span>Workspace</span><span className="max-w-24 truncate text-slate-400">{tenantSlug}</span>
-        </button>
+        </button> */}
+        <div className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold">
+  <span className="text-slate-600">Workspace</span>
+  <span className="max-w-28 truncate text-slate-400">
+  {user.tenant?.name || tenantSlug}
+  </span>
+</div>
         <div className="my-1 border-t border-slate-100" />
         <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600">
           <LogOut size={16} /> Log out
