@@ -5,7 +5,6 @@ import generateToken from "../utils/generateToken.js";
 import crypto from "crypto";
 import sendVerificationEmail from "../utils/sendEmail.js";
 import passport from "../config/passport.js";  
-import Tenant from "../models/Tenant.js";
 
 const authUserResponse = async (user) => {
   const tenant = await Tenant.findById(user.tenantId).select("name slug");

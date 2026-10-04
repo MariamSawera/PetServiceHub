@@ -39,7 +39,6 @@ const USER_LINKS = [
   GUEST_LINKS[3],
   { label: 'My Pets', to: '/pets', icon: PawPrint },
   { label: 'Appointments', to: '/appointments', icon: CalendarDays },
-  { label: 'Reminders', to: '/reminders', icon: Bell },
   ...GUEST_LINKS.slice(4),
 ];
 
@@ -317,6 +316,7 @@ function ProfilePanel({ user, avatar,tenantSlug,  onLogout }) { // onTenantChang
         <Link to={provider ? '/provider/appointments' : '/appointments'} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700">
           <CalendarDays size={16} /> Appointments
         </Link>
+          {!provider && <Link to="/reminders" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><Bell size={16} /> Reminders</Link>}
         {!provider && <Link to="/pets" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><PawPrint size={16} /> My Pets</Link>}
         {/* <button type="button" onClick={onTenantChange} className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700" title="Change workspace">
           <span>Workspace</span><span className="max-w-24 truncate text-slate-400">{tenantSlug}</span>
