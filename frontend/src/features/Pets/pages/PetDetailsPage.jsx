@@ -87,7 +87,7 @@ export default function PetDetailsPage() {
               {vaccinationError && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{vaccinationError}</p>}
               <ReminderLegend />
               {(showVaccinationForm || editingVaccination) && <VaccinationForm vaccination={editingVaccination} onSubmit={handleVaccinationSubmit} onCancel={() => { setShowVaccinationForm(false); setEditingVaccination(null); }} saving={savingVaccination} />}
-              {pet.vaccinations?.length ? <div className="mt-4 space-y-3">{[...pet.vaccinations].sort((first, second) => new Date(second.dateAdministered) - new Date(first.dateAdministered)).map((vaccination) => <article key={vaccination._id} className="rounded-xl border border-slate-100 p-4"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-slate-800">{vaccination.vaccineName}</h3><ReminderStatus nextDueDate={vaccination.nextDueDate} /></div><p className="mt-1 text-sm text-slate-500">Given {formatDate(vaccination.dateAdministered)}{vaccination.nextDueDate ? ` · Due ${formatDate(vaccination.nextDueDate)}` : ''}</p>{vaccination.veterinarian && <p className="mt-1 text-sm text-slate-500">{vaccination.veterinarian}</p>}{vaccination.notes && <p className="mt-2 text-sm text-slate-600">{vaccination.notes}</p>}</div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => { setEditingVaccination(vaccination); setShowVaccinationForm(false); }} className="rounded-lg p-2 text-slate-500 hover:bg-slate-50" aria-label={`Edit ${vaccination.vaccineName}`}><Pencil size={16} /></button><button type="button" onClick={() => handleVaccinationDelete(vaccination)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label={`Delete ${vaccination.vaccineName}`}><Trash2 size={16} /></button></div></div></article>)}</div> : !showVaccinationForm && <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No vaccinations recorded yet.</p>}
+              {pet.vaccinations?.length ? <div className="mt-4 space-y-3">{[...pet.vaccinations].sort((first, second) => new Date(second.dateAdministered) - new Date(first.dateAdministered)).map((vaccination) => <article key={vaccination._id} className="rounded-xl border border-slate-100 p-4"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-slate-800">{vaccination.vaccineName}</h3><ReminderStatus nextDueDate={vaccination.nextDueDate} windowDays={pet.reminderWindowDays} /></div><p className="mt-1 text-sm text-slate-500">Given {formatDate(vaccination.dateAdministered)}{vaccination.nextDueDate ? ` · Due ${formatDate(vaccination.nextDueDate)}` : ''}</p>{vaccination.veterinarian && <p className="mt-1 text-sm text-slate-500">{vaccination.veterinarian}</p>}{vaccination.notes && <p className="mt-2 text-sm text-slate-600">{vaccination.notes}</p>}</div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => { setEditingVaccination(vaccination); setShowVaccinationForm(false); }} className="rounded-lg p-2 text-slate-500 hover:bg-slate-50" aria-label={`Edit ${vaccination.vaccineName}`}><Pencil size={16} /></button><button type="button" onClick={() => handleVaccinationDelete(vaccination)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label={`Delete ${vaccination.vaccineName}`}><Trash2 size={16} /></button></div></div></article>)}</div> : !showVaccinationForm && <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No vaccinations recorded yet.</p>}
             </section>
           </section>
         </div>
@@ -108,7 +108,7 @@ const REMINDER_STYLES = {
   overdue: { label: 'Overdue', className: 'bg-red-50 text-red-700' },
 };
 
-function getReminderStatus(nextDueDate) {
+function getReminderStatus(nextDueDate, windowDays = 30) {
   if (!nextDueDate) return null;
 
   const today = new Date();
@@ -118,12 +118,12 @@ function getReminderStatus(nextDueDate) {
 
   if (daysUntilDue < 0) return 'overdue';
   if (daysUntilDue === 0) return 'dueToday';
-  if (daysUntilDue <= 30) return 'dueSoon';
+  if (daysUntilDue <= windowDays) return 'dueSoon';
   return 'upToDate';
 }
 
-function ReminderStatus({ nextDueDate }) {
-  const status = getReminderStatus(nextDueDate);
+function ReminderStatus({ nextDueDate, windowDays }) {
+  const status = getReminderStatus(nextDueDate, windowDays);
   if (!status) return <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">No reminder</span>;
 
   const reminder = REMINDER_STYLES[status];

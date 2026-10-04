@@ -15,6 +15,19 @@ const vaccinationSchema = new mongoose.Schema(
     nextDueDate: {
       type: Date,
     },
+    doseNumber: {
+      type: Number,
+      min: 1,
+    },
+    totalDoses: {
+      type: Number,
+      min: 1,
+    },
+    recurrenceMonths: {
+      type: Number,
+      min: 1,
+      max: 120,
+    },
     veterinarian: {
       type: String,
       trim: true,
@@ -24,6 +37,19 @@ const vaccinationSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: 500,
+    },
+    certificateUrl: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+    clinic: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Clinic",
+    },
+    provider: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true }

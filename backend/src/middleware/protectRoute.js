@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Tenant from "../models/Tenant.js";
 
 const protectRoute = async (req, res, next) => {
   try {
@@ -15,11 +16,15 @@ const protectRoute = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid token" });
     }
 
-    if (!user.tenantId || (decoded.tenantId && String(user.tenantId) !== String(decoded.tenantId))) {
+    if (!user.tenantId) {
       return res.status(401).json({ message: "Invalid tenant context" });
     }
     if (req.tenantId && String(req.tenantId) !== String(user.tenantId)) {
-      return res.status(403).json({ message: "User does not belong to this tenant" });
+      if (req.tenantExplicit) return res.status(403).json({ message: "User does not belong to this tenant" });
+      const userTenant = await Tenant.findOne({ _id: user.tenantId, active: true });
+      if (!userTenant) return res.status(401).json({ message: "Invalid tenant context" });
+      req.tenant = userTenant;
+      req.tenantId = userTenant._id;
     }
 
     req.user = user;

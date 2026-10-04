@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { uploadImage } from '../../../lib/uploadApi';
+import { getClinics } from '../../Clinics/services/clinicApi';
 
 const EMPTY_FORM = {
   vaccineName: '',
@@ -6,6 +8,10 @@ const EMPTY_FORM = {
   nextDueDate: '',
   veterinarian: '',
   notes: '',
+  doseNumber: '',
+  totalDoses: '',
+  recurrenceMonths: '',
+  certificateUrl: '',
 };
 
 const getInitialForm = (vaccination) => ({
@@ -17,10 +23,16 @@ const getInitialForm = (vaccination) => ({
 
 export default function VaccinationForm({ vaccination, onSubmit, onCancel, saving }) {
   const [form, setForm] = useState(getInitialForm(vaccination));
+  const [clinics, setClinics] = useState([]);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
 
   useEffect(() => {
     setForm(getInitialForm(vaccination));
   }, [vaccination]);
+
+  useEffect(() => {
+    getClinics().then(({ data }) => setClinics(data)).catch(() => setClinics([]));
+  }, []);
 
   const handleChange = ({ target }) => {
     setForm((current) => ({ ...current, [target.name]: target.value }));
@@ -31,9 +43,29 @@ export default function VaccinationForm({ vaccination, onSubmit, onCancel, savin
     onSubmit({
       ...form,
       nextDueDate: form.nextDueDate || undefined,
+      doseNumber: form.doseNumber ? Number(form.doseNumber) : undefined,
+      totalDoses: form.totalDoses ? Number(form.totalDoses) : undefined,
+      recurrenceMonths: form.recurrenceMonths ? Number(form.recurrenceMonths) : undefined,
+      clinic: form.clinic || undefined,
       veterinarian: form.veterinarian.trim() || undefined,
       notes: form.notes.trim() || undefined,
     });
+  };
+
+  const handleCertificateChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) return;
+
+    setUploadingCertificate(true);
+    try {
+      const certificateUrl = await uploadImage(file);
+      setForm((current) => ({ ...current, certificateUrl }));
+    } finally {
+      setUploadingCertificate(false);
+      event.target.value = '';
+    }
   };
 
   const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
@@ -45,11 +77,16 @@ export default function VaccinationForm({ vaccination, onSubmit, onCancel, savin
         <label className="text-sm font-semibold text-slate-700">Date administered<input required type="date" name="dateAdministered" value={form.dateAdministered} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} /></label>
         <label className="text-sm font-semibold text-slate-700">Next due date<input type="date" name="nextDueDate" value={form.nextDueDate} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} /></label>
         <label className="text-sm font-semibold text-slate-700">Veterinarian<input name="veterinarian" value={form.veterinarian} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} placeholder="Dr. Taylor" /></label>
+        <label className="text-sm font-semibold text-slate-700">Dose number<input type="number" min="1" name="doseNumber" value={form.doseNumber} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} placeholder="1" /></label>
+        <label className="text-sm font-semibold text-slate-700">Total doses<input type="number" min="1" name="totalDoses" value={form.totalDoses} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} placeholder="1" /></label>
+        <label className="text-sm font-semibold text-slate-700 sm:col-span-2">Repeat every (months)<input type="number" min="1" max="120" name="recurrenceMonths" value={form.recurrenceMonths} onChange={handleChange} className={`${inputClass} mt-1 font-normal`} placeholder="Optional recurring schedule" /></label>
+        <label className="text-sm font-semibold text-slate-700 sm:col-span-2">Clinic<select name="clinic" value={form.clinic || ''} onChange={handleChange} className={`${inputClass} mt-1 font-normal`}><option value="">Not linked to a clinic</option>{clinics.map((clinic) => <option key={clinic._id} value={clinic._id}>{clinic.name}{clinic.city ? ` · ${clinic.city}` : ''}</option>)}</select></label>
       </div>
       <label className="mt-4 block text-sm font-semibold text-slate-700">Notes<textarea name="notes" value={form.notes} onChange={handleChange} rows="2" className={`${inputClass} mt-1 font-normal`} placeholder="Optional notes" /></label>
+      <label className="mt-4 block text-sm font-semibold text-slate-700">Certificate image<input type="file" accept="image/*" onChange={handleCertificateChange} disabled={uploadingCertificate} className={`${inputClass} mt-1 font-normal`} />{uploadingCertificate && <span className="mt-1 block text-xs font-normal text-teal-700">Uploading certificate...</span>}{form.certificateUrl && <img src={form.certificateUrl} alt="Vaccination certificate" className="mt-2 h-24 rounded-lg object-cover" />}</label>
       <div className="mt-4 flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-white">Cancel</button>
-        <button type="submit" disabled={saving} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving...' : vaccination ? 'Save changes' : 'Add vaccination'}</button>
+        <button type="submit" disabled={saving || uploadingCertificate} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving...' : vaccination ? 'Save changes' : 'Add vaccination'}</button>
       </div>
     </form>
   );

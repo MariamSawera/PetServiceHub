@@ -15,3 +15,5 @@ export const createVaccination = (petId, payload) => api.post(`/api/pets/${petId
 export const updateVaccination = (petId, vaccinationId, payload) => api.patch(`/api/pets/${petId}/vaccinations/${vaccinationId}`, payload);
 
 export const deleteVaccination = (petId, vaccinationId) => api.delete(`/api/pets/${petId}/vaccinations/${vaccinationId}`);
+
+export const getReminders = () => api.get('/api/reminders');

@@ -4,6 +4,18 @@ import generateToken from "../utils/generateToken.js";
 import crypto from "crypto";
 import sendVerificationEmail from "../utils/sendEmail.js";
 import passport from "../config/passport.js";  
+import Tenant from "../models/Tenant.js";
+
+const authUserResponse = async (user) => {
+  const tenant = await Tenant.findById(user.tenantId).select("name slug");
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    tenant: tenant ? { _id: tenant._id, name: tenant.name, slug: tenant.slug } : null,
+  };
+};
 
 export const register = async (req, res) => {
   try {
@@ -88,7 +100,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email, tenantId: req.tenantId });
+    const user = await User.findOne({ email, tenantId: req.tenantId }) || await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -109,12 +121,7 @@ export const login = async (req, res) => {
 }
 
     generateToken(user, res);
-    return res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
+    return res.json(await authUserResponse(user));
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server Error" });
@@ -135,7 +142,7 @@ export const getMe = async (req, res) => {
     return res.status(401).json({ message: "Authentication required" });
   }
 
-  return res.json(req.user);
+  return res.json(await authUserResponse(req.user));
 };
 
 export const googleAuth = passport.authenticate("google", {

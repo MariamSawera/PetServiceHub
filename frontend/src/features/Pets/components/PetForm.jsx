@@ -182,10 +182,7 @@ const getInitialForm = (pet) => ({
   ...pet,
   dateOfBirth: pet?.dateOfBirth ? pet.dateOfBirth.slice(0, 10) : '',
   weight: pet?.weight ?? '',
-  medicalInfo:
-    pet?.medicalInfo && Object.keys(pet.medicalInfo).length
-      ? JSON.stringify(pet.medicalInfo, null, 2)
-      : '',
+  medicalInfo: pet?.medicalInfo?.notes || '',
 });
 
 export default function PetForm({
@@ -224,11 +221,11 @@ export default function PetForm({
     setError('');
 
     try {
-      const { data } = await uploadImage(file);
+      const imageUrl = await uploadImage(file);
 
       setForm((current) => ({
         ...current,
-        image: data.imageUrl,
+        image: imageUrl,
       }));
     } catch {
       setError('Image upload failed. Please try again.');
@@ -242,19 +239,6 @@ export default function PetForm({
     event.preventDefault();
     setError('');
 
-    let medicalInfo = {};
-
-    if (form.medicalInfo.trim()) {
-      try {
-        medicalInfo = JSON.parse(form.medicalInfo);
-      } catch {
-        setError(
-          'Medical info must be valid JSON, for example: {"allergies": []}.'
-        );
-        return;
-      }
-    }
-
     onSubmit({
       name: form.name.trim(),
       species: form.species.trim(),
@@ -263,7 +247,9 @@ export default function PetForm({
       dateOfBirth: form.dateOfBirth || undefined,
       weight: form.weight === '' ? undefined : Number(form.weight),
       image: form.image.trim(),
-      medicalInfo,
+      medicalInfo: form.medicalInfo.trim()
+        ? { notes: form.medicalInfo.trim() }
+        : {},
     });
   };
 
@@ -565,15 +551,15 @@ export default function PetForm({
 
           <label>
             <span className="mb-2 block text-sm font-bold text-slate-700">
-              Medical Information (JSON)
+              Medical notes
             </span>
 
             <textarea
               value={form.medicalInfo}
               onChange={handleChange('medicalInfo')}
               rows={5}
-              className={`${inputClass} resize-none font-mono text-xs leading-6`}
-              placeholder={'{"allergies": [], "notes": ""}'}
+              className={`${inputClass} resize-none leading-6`}
+              placeholder="Add allergies, medications, conditions, or other notes"
             />
 
             <span className="mt-2 block text-xs leading-5 text-slate-400">

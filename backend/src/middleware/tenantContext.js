@@ -1,4 +1,5 @@
 import Tenant from "../models/Tenant.js";
+import jwt from "jsonwebtoken";
 
 const DEFAULT_TENANT_SLUG = process.env.DEFAULT_TENANT_SLUG || "default";
 
@@ -14,7 +15,26 @@ const tenantSlugFromRequest = (req) => {
 
 export const resolveTenant = async (req, res, next) => {
   try {
-    const tenant = await Tenant.findOne({ slug: tenantSlugFromRequest(req), active: true });
+    const headerSlug = req.get("x-tenant-slug");
+    req.tenantExplicit = Boolean(headerSlug);
+    let tenant;
+
+    if (headerSlug) {
+      tenant = await Tenant.findOne({ slug: headerSlug.toLowerCase(), active: true });
+    } else {
+      const token = req.cookies?.jwt || req.headers.authorization?.replace(/^Bearer\s+/i, "");
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          tenant = await Tenant.findOne({ _id: decoded.tenantId, active: true });
+        } catch {
+          tenant = null;
+        }
+      }
+
+      if (!tenant) tenant = await Tenant.findOne({ slug: tenantSlugFromRequest(req), active: true });
+    }
+
     if (!tenant) return res.status(404).json({ message: "Tenant not found" });
     req.tenant = tenant;
     req.tenantId = tenant._id;

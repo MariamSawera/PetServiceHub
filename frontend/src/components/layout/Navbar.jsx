@@ -28,21 +28,23 @@ const GUEST_LINKS = [
   { label: 'Home', to: '/', icon: House },
   { label: 'Services', to: '/services', icon: Grid2X2 },
   { label: 'Community', to: '/community', icon: UsersRound },
-  { label: 'Vets', to: '/find-vets', icon: Stethoscope },
+  { label: 'Find a vet', to: '/find-vets', icon: Stethoscope },
   { label: 'About', to: '/about', icon: Info },
   { label: 'Contact', to: '/contact', icon: Mail },
 ];
 
 const USER_LINKS = [
-  ...GUEST_LINKS.slice(0, 3),
+  GUEST_LINKS[0],
+  GUEST_LINKS[2],
+  GUEST_LINKS[3],
   { label: 'My Pets', to: '/pets', icon: PawPrint },
   { label: 'Appointments', to: '/appointments', icon: CalendarDays },
+  { label: 'Reminders', to: '/reminders', icon: Bell },
   ...GUEST_LINKS.slice(4),
 ];
 
 const PROVIDER_LINKS = [
   { label: 'Home', to: '/provider/dashboard', icon: House },
-  { label: 'Services', to: '/services', icon: Grid2X2 },
   { label: 'Appointments', to: '/provider/appointments', icon: CalendarDays },
   { label: 'Clinics', to: '/provider/clinics', icon: Building2 },
   { label: 'My Profile', to: '/profile', icon: UserRound },

@@ -4,11 +4,19 @@ import { Link } from 'react-router-dom';
 import ClinicMap from '../components/ClinicMap';
 import { getClinics, getNearbyClinics } from '../services/clinicApi';
 
-function ClinicCard({ clinic }) {
+function ClinicCard({ clinic, onSelect }) {
   const specialty = clinic.specialties?.[0] || clinic.services?.[0] || 'Veterinary care';
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <article
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+      onClick={() => onSelect(clinic._id)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') onSelect(clinic._id);
+      }}
+      role="button"
+      tabIndex={0}
+    >
       <div className="relative aspect-[16/9] overflow-hidden bg-teal-50">
         {clinic.image ? (
           <img src={clinic.image} alt={clinic.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
@@ -49,6 +57,7 @@ function ClinicCard({ clinic }) {
 
 export default function FindVetsPage() {
   const [clinics, setClinics] = useState([]);
+  const [focusClinicId, setFocusClinicId] = useState(null);
   const [search, setSearch] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [radius, setRadius] = useState('25000');
@@ -169,8 +178,8 @@ export default function FindVetsPage() {
         {state === 'error' && <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-12 text-center text-sm font-semibold text-red-700">Could not load clinics. Please try again.</div>}
         {state === 'ready' && (
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] lg:items-start">
-            {filteredClinics.length > 0 ? <div className="grid gap-6 md:grid-cols-2">{filteredClinics.map((clinic) => <ClinicCard key={clinic._id} clinic={clinic} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">No clinics match that search.</div>}
-            <ClinicMap clinics={filteredClinics} userLocation={userLocation} />
+            {filteredClinics.length > 0 ? <div className="grid gap-6 md:grid-cols-2">{filteredClinics.map((clinic) => <ClinicCard key={clinic._id} clinic={clinic} onSelect={setFocusClinicId} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">No clinics match that search.</div>}
+            <ClinicMap clinics={filteredClinics} focusClinicId={focusClinicId} userLocation={userLocation} />
           </div>
         )}
       </div>

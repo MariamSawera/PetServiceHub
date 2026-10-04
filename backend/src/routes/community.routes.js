@@ -8,6 +8,7 @@ import {
   getPost,
   listComments,
   listPosts,
+  togglePostLike,
   updatePost,
 } from "../controllers/community.controller.js";
 
@@ -20,6 +21,7 @@ router.get("/posts/:postId/comments", listComments);
 router.use(protectRoute);
 router.post("/posts", createPost);
 router.patch("/posts/:postId", updatePost);
+router.patch("/posts/:postId/like", togglePostLike);
 router.delete("/posts/:postId", deletePost);
 router.post("/posts/:postId/comments", createComment);
 router.delete("/comments/:commentId", deleteComment);

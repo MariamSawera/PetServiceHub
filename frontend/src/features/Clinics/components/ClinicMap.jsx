@@ -12,25 +12,50 @@ const clinicIcon = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function MapViewport({ center }) {
+function MapViewport({ center, clinicPositions, focusPosition, userLocation }) {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(center, map.getZoom(), { animate: true });
-  }, [center, map]);
+    if (focusPosition) {
+      map.setView(focusPosition, 15, { animate: true });
+      return;
+    }
+
+    if (userLocation) {
+      map.setView(center, map.getZoom(), { animate: true });
+      return;
+    }
+
+    if (clinicPositions.length === 1) {
+      map.setView(clinicPositions[0], 14, { animate: true });
+      return;
+    }
+
+    if (clinicPositions.length > 1) {
+      map.fitBounds(clinicPositions, { padding: [36, 36], maxZoom: 14, animate: true });
+    }
+  }, [center, clinicPositions, focusPosition, map, userLocation]);
 
   return null;
 }
 
-export default function ClinicMap({ clinics, userLocation }) {
+export default function ClinicMap({ clinics, focusClinicId, userLocation }) {
   const defaultCenter = [17.385, 78.4867];
   const center = userLocation ? [userLocation.latitude, userLocation.longitude] : defaultCenter;
   const clinicsWithLocation = clinics.filter((clinic) => clinic.location?.coordinates?.length === 2);
+  const clinicPositions = clinicsWithLocation.map((clinic) => {
+    const [longitude, latitude] = clinic.location.coordinates;
+    return [latitude, longitude];
+  });
+  const focusedClinic = clinicsWithLocation.find((clinic) => clinic._id === focusClinicId);
+  const focusPosition = focusedClinic
+    ? [focusedClinic.location.coordinates[1], focusedClinic.location.coordinates[0]]
+    : null;
 
   return (
     <div className="relative h-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm lg:sticky lg:top-24">
       <MapContainer center={center} zoom={userLocation ? 12 : 11} scrollWheelZoom className="h-full w-full">
-        <MapViewport center={center} />
+        <MapViewport center={center} clinicPositions={clinicPositions} focusPosition={focusPosition} userLocation={userLocation} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

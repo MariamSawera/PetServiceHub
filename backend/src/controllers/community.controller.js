@@ -31,12 +31,12 @@ export const getPost = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-  const { title, content, category = "general" } = req.body;
+  const { title, content, category = "general", image } = req.body;
   if (!title?.trim() || !content?.trim()) return res.status(400).json({ message: "Title and content are required" });
   if (!categories.includes(category)) return res.status(400).json({ message: "Invalid post category" });
 
   try {
-    const post = await Post.create({ tenantId: req.tenantId, author: req.user._id, title, content, category });
+    const post = await Post.create({ tenantId: req.tenantId, author: req.user._id, title, content, category, image });
     return res.status(201).json(await postQuery(Post.findOne({ _id: post._id, tenantId: req.tenantId })));
   } catch (error) {
     console.error("createPost error", error);
@@ -49,6 +49,7 @@ export const updatePost = async (req, res) => {
   const updates = {};
   if (req.body.title !== undefined) updates.title = req.body.title;
   if (req.body.content !== undefined) updates.content = req.body.content;
+  if (req.body.image !== undefined) updates.image = req.body.image;
   if (req.body.category !== undefined) updates.category = req.body.category;
   if (updates.category && !categories.includes(updates.category)) return res.status(400).json({ message: "Invalid post category" });
 
@@ -59,6 +60,27 @@ export const updatePost = async (req, res) => {
   } catch (error) {
     console.error("updatePost error", error);
     return res.status(400).json({ message: "Invalid post data" });
+  }
+};
+
+export const togglePostLike = async (req, res) => {
+  if (invalidId(req.params.postId)) return res.status(404).json({ message: "Post not found" });
+
+  try {
+    const post = await Post.findOne({ _id: req.params.postId, tenantId: req.tenantId });
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const hasLiked = post.likedBy.some((userId) => userId.equals(req.user._id));
+    const updatedPost = await postQuery(Post.findOneAndUpdate(
+      { _id: post._id, tenantId: req.tenantId },
+      hasLiked ? { $pull: { likedBy: req.user._id } } : { $addToSet: { likedBy: req.user._id } },
+      { new: true }
+    ));
+
+    return res.json(updatedPost);
+  } catch (error) {
+    console.error("togglePostLike error", error);
+    return res.status(500).json({ message: "Could not update post like" });
   }
 };
 

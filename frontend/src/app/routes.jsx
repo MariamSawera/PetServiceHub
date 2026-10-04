@@ -20,6 +20,7 @@ import AboutPage from '../features/About/pages/AboutPage';
 import ContactPage from '../features/Contact/pages/ContactPage';
 import ServicesPage from '../features/Services/pages/ServicesPage';
 import CommunityPage from '../features/Community/pages/CommunityPage';
+import RemindersPage from '../features/Pets/pages/RemindersPage';
 
 export default function AppRoutes() {
 	return (
@@ -46,6 +47,7 @@ export default function AppRoutes() {
 					<Route path="/appointments/new/:clinicId" element={<BookingPage />} />
 					<Route path="/appointments/:appointmentId/confirmation" element={<BookingConfirmationPage />} />
 					<Route path="/appointments" element={<AppointmentsPage />} />
+					<Route path="/reminders" element={<RemindersPage />} />
 				</Route>
 			</Route>
 		</Routes>

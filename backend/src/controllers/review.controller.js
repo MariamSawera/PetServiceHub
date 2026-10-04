@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Appointment from "../models/Appointment.js";
 import Clinic from "../models/Clinic.js";
 import Review from "../models/Review.js";
+import { createReviewNotification } from "../services/notification.service.js";
 
 const invalidId = (id) => !mongoose.isValidObjectId(id);
 const reviewQuery = (query) => query.populate("user", "name").populate("clinic", "name city").populate("appointment", "pet service date").sort({ createdAt: -1 });
@@ -35,6 +36,7 @@ export const createReview = async (req, res) => {
     if (existingReview) return res.status(409).json({ message: "You have already reviewed this appointment" });
     const review = await Review.create({ tenantId: req.tenantId, user: req.user._id, appointment, clinic: completedAppointment.clinic, rating: Number(rating), comment });
     await refreshClinicRating(completedAppointment.clinic, req.tenantId);
+    createReviewNotification(review).catch((error) => console.error("review notification error", error));
     return res.status(201).json(await reviewQuery(Review.findOne({ _id: review._id, tenantId: req.tenantId })));
   } catch (error) {
     console.error("createReview error", error);
@@ -48,6 +50,7 @@ export const updateReview = async (req, res) => {
     const review = await Review.findOneAndUpdate({ _id: req.params.reviewId, user: req.user._id, tenantId: req.tenantId }, { rating: req.body.rating, comment: req.body.comment }, { new: true, runValidators: true });
     if (!review) return res.status(404).json({ message: "Review not found" });
     await refreshClinicRating(review.clinic, req.tenantId);
+    createReviewNotification(review, "review_updated").catch((error) => console.error("review update notification error", error));
     return res.json(await reviewQuery(Review.findOne({ _id: review._id, tenantId: req.tenantId })));
   } catch (error) { console.error("updateReview error", error); return res.status(400).json({ message: "Invalid review data" }); }
 };

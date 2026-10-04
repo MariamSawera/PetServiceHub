@@ -6,6 +6,8 @@ PawCare is a multi-tenant pet-care platform for finding veterinary clinics, mana
 
 PawCare is a University of Sindh IT Final Year Project for Batch 2K23.
 
+For the complete current workflow, API, feature, data model, configuration, and limitation reference, see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md).
+
 Project members:
 
 - MariamSawera
@@ -27,6 +29,7 @@ The project is currently approximately half complete. Planned work includes:
 - Tenant-aware data isolation and tenant switching
 - Provider clinic management, maps, geolocation, nearby search, filters, and directions
 - Pet profiles, vaccination history, and due-date notifications
+- Dedicated vaccination reminders, recurring schedules, dose tracking, certificate images, and clinic/provider links
 - Appointment booking, cancellation, provider status updates, and verified reviews
 - Community posts and comments with protected interactions
 - In-app notifications and API/authentication rate limiting
@@ -76,6 +79,9 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # SMTP email verification
 EMAIL_USER=your_smtp_email
 EMAIL_PASSWORD=your_smtp_password_or_app_password
+
+# Vaccination reminders (defaults to 30 days)
+VACCINATION_REMINDER_DAYS=30
 
 # Optional Cloudinary uploads
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name

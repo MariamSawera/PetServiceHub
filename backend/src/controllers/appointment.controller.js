@@ -18,7 +18,7 @@ export const createAppointment = async (req, res) => {
     if (!ownedPet) return res.status(404).json({ message: "Pet not found" });
     if (!existingClinic) return res.status(404).json({ message: "Clinic not found" });
     const appointment = await Appointment.create({ user: req.user._id, pet, clinic, service, date, time, notes, tenantId: req.tenantId });
-    createAppointmentNotification({ ...appointment.toObject(), pet: ownedPet }, "appointment_created").catch((error) => console.error("create appointment notification error", error));
+    createAppointmentNotification({ ...appointment.toObject(), pet: ownedPet, clinic: existingClinic }, "appointment_created", "provider").catch((error) => console.error("create appointment notification error", error));
     return res.status(201).json(await appointmentQuery(Appointment.findOne({ _id: appointment._id, tenantId: req.tenantId })));
   } catch (error) {
     console.error("createAppointment error", error);
@@ -75,7 +75,7 @@ export const cancelAppointment = async (req, res) => {
       { new: true, runValidators: true }
     ));
     if (!appointment) return res.status(404).json({ message: "Appointment not found or cannot be cancelled" });
-    createAppointmentNotification(appointment, "appointment_cancelled").catch((error) => console.error("cancel appointment notification error", error));
+    createAppointmentNotification(appointment, "appointment_cancelled", "provider").catch((error) => console.error("cancel appointment notification error", error));
     return res.json(appointment);
   } catch (error) { console.error("cancelAppointment error", error); return res.status(500).json({ message: "Server Error" }); }
 };

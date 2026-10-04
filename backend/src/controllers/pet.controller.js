@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Pet from "../models/Pet.js";
+import Clinic from "../models/Clinic.js";
 
 const PET_FIELDS = [
   "name",
@@ -23,9 +24,10 @@ const petPayload = (body = {}) => {
 };
 
 const invalidId = (id) => !mongoose.isValidObjectId(id);
+const vaccinationReminderWindowDays = () => Math.min(Math.max(Number(process.env.VACCINATION_REMINDER_DAYS || 30), 1), 365);
 
 const vaccinationPayload = (body = {}) => {
-  const fields = ["vaccineName", "dateAdministered", "nextDueDate", "veterinarian", "notes"];
+  const fields = ["vaccineName", "dateAdministered", "nextDueDate", "doseNumber", "totalDoses", "recurrenceMonths", "veterinarian", "notes", "certificateUrl", "clinic"];
   return fields.reduce((payload, field) => {
     if (body[field] !== undefined) {
       payload[field] = body[field];
@@ -66,7 +68,7 @@ export const getPet = async (req, res) => {
       return res.status(404).json({ message: "Pet not found" });
     }
 
-    return res.json(pet);
+    return res.json({ ...pet.toObject(), reminderWindowDays: vaccinationReminderWindowDays() });
   } catch (error) {
     console.error("getPet error", error);
     return res.status(500).json({ message: "Server Error" });
@@ -144,7 +146,18 @@ export const createVaccination = async (req, res) => {
       return res.status(404).json({ message: "Pet not found" });
     }
 
-    pet.vaccinations.push(vaccinationPayload(req.body));
+    const payload = vaccinationPayload(req.body);
+    if (!payload.nextDueDate && payload.recurrenceMonths && payload.dateAdministered) {
+      const nextDueDate = new Date(payload.dateAdministered);
+      nextDueDate.setMonth(nextDueDate.getMonth() + payload.recurrenceMonths);
+      payload.nextDueDate = nextDueDate;
+    }
+    if (payload.clinic) {
+      const clinic = await Clinic.findOne({ _id: payload.clinic, tenantId: req.tenantId }).select("_id owner");
+      if (!clinic) return res.status(404).json({ message: "Clinic not found" });
+      payload.provider = clinic.owner;
+    }
+    pet.vaccinations.push(payload);
     await pet.save();
     return res.status(201).json(pet.vaccinations.at(-1));
   } catch (error) {
@@ -165,7 +178,13 @@ export const updateVaccination = async (req, res) => {
       return res.status(404).json({ message: "Vaccination not found" });
     }
 
-    Object.assign(vaccination, vaccinationPayload(req.body));
+    const payload = vaccinationPayload(req.body);
+    if (payload.clinic) {
+      const clinicRecord = await Clinic.findOne({ _id: payload.clinic, tenantId: req.tenantId }).select("_id owner");
+      if (!clinicRecord) return res.status(404).json({ message: "Clinic not found" });
+      payload.provider = clinicRecord.owner;
+    }
+    Object.assign(vaccination, payload);
     await pet.save();
     return res.json(vaccination);
   } catch (error) {

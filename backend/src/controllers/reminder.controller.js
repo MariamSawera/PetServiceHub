@@ -1,6 +1,7 @@
 import Pet from "../models/Pet.js";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const reminderWindowDays = () => Math.min(Math.max(Number(process.env.VACCINATION_REMINDER_DAYS || 30), 1), 365);
 
 const startOfTodayUtc = () => {
   const today = new Date();
@@ -17,6 +18,7 @@ export const listReminders = async (req, res) => {
   try {
     const pets = await Pet.find({ owner: req.user._id, tenantId: req.tenantId }).select("name species vaccinations");
     const today = startOfTodayUtc();
+    const windowDays = reminderWindowDays();
     const reminders = pets.flatMap((pet) => pet.vaccinations
       .filter((vaccination) => vaccination.nextDueDate)
       .map((vaccination) => {
@@ -36,10 +38,10 @@ export const listReminders = async (req, res) => {
           status: reminderStatus(daysUntilDue),
         };
       })
-      .filter((reminder) => reminder.daysUntilDue <= 30));
+      .filter((reminder) => reminder.daysUntilDue <= windowDays));
 
     reminders.sort((first, second) => first.daysUntilDue - second.daysUntilDue);
-    return res.json(reminders);
+    return res.json({ reminders, windowDays });
   } catch (error) {
     console.error("listReminders error", error);
     return res.status(500).json({ message: "Server Error" });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TenantContext } from './tenantContext';
 
 const DEFAULT_TENANT = import.meta.env.VITE_TENANT_SLUG || 'default';
@@ -6,11 +6,18 @@ const DEFAULT_TENANT = import.meta.env.VITE_TENANT_SLUG || 'default';
 export function TenantProvider({ children }) {
   const [tenantSlug, setTenantSlugState] = useState(() => localStorage.getItem('pawcareTenant') || DEFAULT_TENANT);
 
+  useEffect(() => {
+    const handleTenantUpdate = (event) => setTenantSlugState(event.detail);
+    window.addEventListener('tenant-updated', handleTenantUpdate);
+    return () => window.removeEventListener('tenant-updated', handleTenantUpdate);
+  }, []);
+
   const setTenantSlug = (nextSlug) => {
     const normalizedSlug = nextSlug.trim().toLowerCase();
     if (!normalizedSlug || !/^[a-z0-9-]+$/.test(normalizedSlug)) return false;
     localStorage.setItem('pawcareTenant', normalizedSlug);
     setTenantSlugState(normalizedSlug);
+    window.dispatchEvent(new CustomEvent('tenant-updated', { detail: normalizedSlug }));
     window.location.reload();
     return true;
   };

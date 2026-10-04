@@ -6,7 +6,8 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  config.headers['x-tenant-slug'] = localStorage.getItem('pawcareTenant') || import.meta.env.VITE_TENANT_SLUG || 'default';
+  const tenantSlug = localStorage.getItem('pawcareTenant') || import.meta.env.VITE_TENANT_SLUG;
+  if (tenantSlug && tenantSlug !== 'default') config.headers['x-tenant-slug'] = tenantSlug;
   return config;
 });
 
