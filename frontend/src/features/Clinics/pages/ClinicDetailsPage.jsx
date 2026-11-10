@@ -87,11 +87,14 @@ export default function ClinicDetailsPage() {
 
   return (
     <main className="min-h-[70vh] bg-[var(--theme-bg)] px-6 py-12 md:px-12 md:py-16">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-[1400px]">
         <Link to="/find-vets" className="inline-flex items-center gap-2 text-sm font-bold text-teal-700 hover:text-teal-900"><ArrowLeft size={16} /> Back to clinics</Link>
-        <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex h-48 items-center justify-center bg-gradient-to-br from-hero-start to-hero-end md:h-64">{clinic.image ? <img src={clinic.image} alt={clinic.name} className="h-full w-full object-cover" /> : <Stethoscope size={56} className="text-teal-700/70" />}</div>
-          <div className="p-6 md:p-9">
+        <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid md:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
+            <div className="relative min-h-[260px] bg-gradient-to-br from-hero-start to-hero-end md:h-[420px] md:min-h-0 md:self-start">
+              {clinic.image ? <img src={clinic.image} alt={clinic.name} className="absolute inset-0 h-full w-full object-cover" /> : <div className="flex h-full min-h-[260px] items-center justify-center md:min-h-[420px]"><Stethoscope size={64} className="text-teal-700/70" /></div>}
+            </div>
+          <div className="p-6 md:p-9 lg:p-11">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div><h1 className="text-3xl font-black text-slate-950">{clinic.name}</h1><p className="mt-2 flex items-center gap-2 text-slate-500"><MapPin size={17} className="text-teal-600" />{clinic.city || clinic.state || 'Location available on request'}</p></div>
               <span className="flex items-center gap-1 rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700"><Star size={16} fill="currentColor" />{clinic.rating ?? 'New'}</span>
@@ -100,15 +103,16 @@ export default function ClinicDetailsPage() {
             {(clinic.phone || clinic.address) && <div className="mt-7 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">{clinic.phone && <span className="flex items-center gap-2"><Phone size={16} className="text-teal-600" />{clinic.phone}</span>}{clinic.address && <span className="flex items-center gap-2"><MapPin size={16} className="text-teal-600" />{clinic.address}</span>}</div>}
             <div className="mt-7 flex flex-wrap gap-2">{[...(clinic.specialties || []), ...(clinic.services || [])].map((item) => <span key={item} className="rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800">{item}</span>)}</div>
             <div className="mt-8 border-t border-slate-100 pt-6"><h2 className="text-xl font-bold text-slate-950">Verified reviews</h2>{reviews.length === 0 ? <p className="mt-3 text-sm text-slate-500">No reviews yet.</p> : <div className="mt-4 space-y-4">{reviews.map((review) => <div key={review._id} className="rounded-xl bg-slate-50 p-4"><div className="flex items-center justify-between gap-3"><span className="font-bold text-slate-800">{review.user?.name || 'Pet parent'}</span><span className="flex items-center gap-1 text-sm font-bold text-amber-600"><Star size={15} fill="currentColor" />{review.rating}</span></div>{review.comment && <p className="mt-2 text-sm leading-6 text-slate-600">{review.comment}</p>}</div>)}</div>}</div>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <button type="button" onClick={getDirections} disabled={directions.status === 'locating'} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"><LocateFixed size={17} />{directions.status === 'locating' ? 'Finding your location...' : 'Get directions'}</button>
+            <div className="mt-8 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:flex-wrap sm:items-center">
+              <button type="button" onClick={getDirections} disabled={directions.status === 'locating'} className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"><LocateFixed size={17} />{directions.status === 'locating' ? 'Finding your location...' : 'Get directions'}</button>
               {directions.status === 'ready' && <span className="text-sm font-semibold text-slate-600">{(directions.route.distance / 1000).toFixed(1)} km by road</span>}
               {directions.status === 'denied' && <span className="text-sm text-slate-500">Location permission was not granted.</span>}
               {(directions.status === 'route-error' || directions.status === 'error') && <span className="text-sm text-red-600">Could not build a route to this clinic.</span>}
               {directions.status === 'unsupported' && <span className="text-sm text-slate-500">Location is not supported by this browser.</span>}
+              <Link to={`/appointments/new/${clinic._id}`} className="inline-flex items-center justify-center rounded-xl border border-teal-700 px-5 py-3 text-sm font-bold text-teal-800 transition hover:bg-teal-50">Book appointment</Link>
             </div>
-            <Link to={`/appointments/new/${clinic._id}`} className="mt-4 inline-flex items-center rounded-lg border border-teal-700 px-5 py-3 text-sm font-bold text-teal-800 hover:bg-teal-50">Book appointment</Link>
             {directions.location && <DirectionsMap clinic={clinic} userLocation={directions.location} route={directions.route} />}
+          </div>
           </div>
         </section>
       </div>

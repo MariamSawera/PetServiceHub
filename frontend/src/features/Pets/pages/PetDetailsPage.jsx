@@ -1,5 +1,5 @@
 import { createElement, useEffect, useState } from 'react';
-import { ArrowLeft, CalendarDays, Dog, HeartPulse, Pencil, Plus, Scale, Trash2, Syringe } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Dog, HeartPulse, Pencil, Plus, Scale, Trash2, Syringe, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import VaccinationForm from '../components/VaccinationForm';
 import { createVaccination, deleteVaccination, getPet, updateVaccination } from '../services/petApi';
@@ -21,6 +21,27 @@ export default function PetDetailsPage() {
       })
       .catch(() => setState('error'));
   }, [petId]);
+
+  useEffect(() => {
+    const formOpen = showVaccinationForm || editingVaccination;
+    if (!formOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !savingVaccination) {
+        setShowVaccinationForm(false);
+        setEditingVaccination(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editingVaccination, savingVaccination, showVaccinationForm]);
 
   const handleVaccinationSubmit = async (payload) => {
     setSavingVaccination(true);
@@ -62,7 +83,7 @@ export default function PetDetailsPage() {
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[var(--theme-bg)] px-6 py-10 md:px-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-[1400px]">
         <Link to="/pets" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:underline"><ArrowLeft size={16} /> Back to my pets</Link>
         <div className="mt-7 grid gap-6 lg:grid-cols-[280px_1fr]">
           <div className="flex min-h-[280px] items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-teal-50 shadow-sm">
@@ -78,7 +99,10 @@ export default function PetDetailsPage() {
               <InfoItem Icon={Scale} label="Weight" value={pet.weight ? `${pet.weight} kg` : 'Not added'} />
               <InfoItem Icon={HeartPulse} label="Vaccinations" value={`${pet.vaccinations?.length || 0} recorded`} />
             </div>
-            <div className="mt-8"><h2 className="text-lg font-bold text-slate-900">Medical information</h2>{pet.medicalInfo && Object.keys(pet.medicalInfo).length ? <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-4 text-xs leading-6 text-slate-600">{JSON.stringify(pet.medicalInfo, null, 2)}</pre> : <p className="mt-2 text-sm text-slate-500">No medical information has been added yet.</p>}</div>
+            <div className="mt-8">
+              <h2 className="text-lg font-bold text-slate-900">Medical information</h2>
+              <MedicalInformation medicalInfo={pet.medicalInfo} />
+            </div>
             <section className="mt-8 border-t border-slate-100 pt-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div><h2 className="flex items-center gap-2 text-lg font-bold text-slate-900"><Syringe size={19} className="text-brand-600" /> Vaccination history</h2><p className="mt-1 text-sm text-slate-500">Track completed vaccines and upcoming due dates.</p></div>
@@ -86,12 +110,28 @@ export default function PetDetailsPage() {
               </div>
               {vaccinationError && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{vaccinationError}</p>}
               <ReminderLegend />
-              {(showVaccinationForm || editingVaccination) && <VaccinationForm vaccination={editingVaccination} onSubmit={handleVaccinationSubmit} onCancel={() => { setShowVaccinationForm(false); setEditingVaccination(null); }} saving={savingVaccination} />}
               {pet.vaccinations?.length ? <div className="mt-4 space-y-3">{[...pet.vaccinations].sort((first, second) => new Date(second.dateAdministered) - new Date(first.dateAdministered)).map((vaccination) => <article key={vaccination._id} className="rounded-xl border border-slate-100 p-4"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-slate-800">{vaccination.vaccineName}</h3><ReminderStatus nextDueDate={vaccination.nextDueDate} windowDays={pet.reminderWindowDays} /></div><p className="mt-1 text-sm text-slate-500">Given {formatDate(vaccination.dateAdministered)}{vaccination.nextDueDate ? ` · Due ${formatDate(vaccination.nextDueDate)}` : ''}</p>{vaccination.veterinarian && <p className="mt-1 text-sm text-slate-500">{vaccination.veterinarian}</p>}{vaccination.notes && <p className="mt-2 text-sm text-slate-600">{vaccination.notes}</p>}</div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => { setEditingVaccination(vaccination); setShowVaccinationForm(false); }} className="rounded-lg p-2 text-slate-500 hover:bg-slate-50" aria-label={`Edit ${vaccination.vaccineName}`}><Pencil size={16} /></button><button type="button" onClick={() => handleVaccinationDelete(vaccination)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label={`Delete ${vaccination.vaccineName}`}><Trash2 size={16} /></button></div></div></article>)}</div> : !showVaccinationForm && <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No vaccinations recorded yet.</p>}
             </section>
           </section>
         </div>
       </div>
+      {(showVaccinationForm || editingVaccination) && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-6 sm:p-8" role="presentation">
+          <div className="max-h-[calc(100vh-3rem)] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/70 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="dialog" aria-modal="true" aria-labelledby="vaccination-form-title">
+            <div className="flex items-center justify-between border-b border-teal-100 bg-gradient-to-r from-teal-50 to-white px-6 py-6 sm:px-8">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-100 text-brand-700"><Syringe size={21} /></span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-600">Vaccination record</p>
+                  <h2 id="vaccination-form-title" className="mt-1 text-xl font-extrabold text-slate-900">{editingVaccination ? 'Edit vaccination' : 'Add vaccination'}</h2>
+                </div>
+              </div>
+              <button type="button" onClick={() => { setShowVaccinationForm(false); setEditingVaccination(null); }} disabled={savingVaccination} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Close vaccination form"><X size={20} /></button>
+            </div>
+            <VaccinationForm vaccination={editingVaccination} onSubmit={handleVaccinationSubmit} onCancel={() => { setShowVaccinationForm(false); setEditingVaccination(null); }} saving={savingVaccination} />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -99,6 +139,51 @@ export default function PetDetailsPage() {
 function InfoItem({ Icon, label, value }) {
   const icon = createElement(Icon, { size: 18, className: 'text-brand-600' });
   return <div className="rounded-xl bg-slate-50 p-4">{icon}<p className="mt-3 text-xs text-slate-500">{label}</p><p className="mt-1 text-sm font-semibold text-slate-800">{value}</p></div>;
+}
+
+function MedicalInformation({ medicalInfo }) {
+  if (!medicalInfo || typeof medicalInfo !== 'object' || !Object.keys(medicalInfo).length) {
+    return <p className="mt-2 text-sm text-slate-500">No medical information has been added yet.</p>;
+  }
+
+  return (
+    <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+      {Object.entries(medicalInfo).map(([key, value]) => {
+        const displayValue = formatMedicalValue(value);
+
+        if (!displayValue) return null;
+
+        return (
+          <div key={key} className="rounded-xl bg-slate-50 p-4">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{formatMedicalLabel(key)}</dt>
+            <dd className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{displayValue}</dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+function formatMedicalLabel(key) {
+  return key
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]/g, ' ')
+    .replace(/^\w|\s\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatMedicalValue(value) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join(', ');
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.entries(value)
+      .map(([key, nestedValue]) => `${formatMedicalLabel(key)}: ${formatMedicalValue(nestedValue)}`)
+      .filter((entry) => !entry.endsWith(': '))
+      .join('\n');
+  }
+
+  return value === null || value === undefined || value === '' ? '' : String(value);
 }
 
 const REMINDER_STYLES = {

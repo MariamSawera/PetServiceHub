@@ -13,6 +13,7 @@ export default function BookingPage() {
   const [form, setForm] = useState({ pet: '', service: '', date: '', time: '', notes: '' });
   const [state, setState] = useState('loading');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     Promise.all([getClinic(clinicId), getPets()])
@@ -30,12 +31,15 @@ export default function BookingPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     setError('');
+    setSubmitting(true);
     try {
       const { data } = await createAppointment({ ...form, clinic: clinicId });
       navigate(`/appointments/${data._id}/confirmation`);
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Could not create appointment.');
+      setSubmitting(false);
     }
   };
 
@@ -59,7 +63,7 @@ export default function BookingPage() {
           </div>
           {pets.length === 0 && <p className="mt-5 rounded-lg bg-amber-50 p-3 text-sm font-semibold text-amber-800">Add a pet before booking an appointment.</p>}
           {error && <p className="mt-5 text-sm font-semibold text-red-600">{error}</p>}
-          <button type="submit" disabled={pets.length === 0} className="mt-7 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-bold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"><Check size={17} />Confirm booking</button>
+          <button type="submit" disabled={pets.length === 0 || submitting} className="mt-7 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-bold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"><Check size={17} />{submitting ? 'Booking...' : 'Confirm booking'}</button>
         </form>
       </div>
     </main>

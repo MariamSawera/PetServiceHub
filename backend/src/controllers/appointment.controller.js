@@ -6,6 +6,7 @@ import { createAppointmentNotification } from "../services/notification.service.
 
 const invalidId = (id) => !mongoose.isValidObjectId(id);
 const appointmentQuery = (query) => query.populate("pet", "name species").populate("clinic", "name city owner").populate("user", "name email").sort({ date: 1, createdAt: -1 });
+const providerAppointmentQuery = (query) => query.populate("pet", "name species breed gender dateOfBirth weight image medicalInfo vaccinations").populate("clinic", "name city owner").populate("user", "name email").sort({ date: 1, createdAt: -1 });
 
 export const createAppointment = async (req, res) => {
   const { pet, clinic, service, date, time, notes } = req.body;
@@ -17,6 +18,16 @@ export const createAppointment = async (req, res) => {
     ]);
     if (!ownedPet) return res.status(404).json({ message: "Pet not found" });
     if (!existingClinic) return res.status(404).json({ message: "Clinic not found" });
+    const existingAppointment = await Appointment.findOne({
+      user: req.user._id,
+      pet,
+      clinic,
+      date,
+      time,
+      tenantId: req.tenantId,
+      status: { $in: ["pending", "confirmed"] },
+    }).select("_id");
+    if (existingAppointment) return res.status(409).json({ message: "You already have an active appointment for this pet at that time" });
     const appointment = await Appointment.create({ user: req.user._id, pet, clinic, service, date, time, notes, tenantId: req.tenantId });
     createAppointmentNotification({ ...appointment.toObject(), pet: ownedPet, clinic: existingClinic }, "appointment_created", "provider").catch((error) => console.error("create appointment notification error", error));
     return res.status(201).json(await appointmentQuery(Appointment.findOne({ _id: appointment._id, tenantId: req.tenantId })));
@@ -43,7 +54,7 @@ export const getAppointment = async (req, res) => {
 export const listProviderAppointments = async (req, res) => {
   try {
     const clinics = await Clinic.find({ owner: req.user._id, tenantId: req.tenantId }).select("_id");
-    return res.json(await appointmentQuery(Appointment.find({ tenantId: req.tenantId, clinic: { $in: clinics.map((clinic) => clinic._id) } })));
+    return res.json(await providerAppointmentQuery(Appointment.find({ tenantId: req.tenantId, clinic: { $in: clinics.map((clinic) => clinic._id) } })));
   } catch (error) { console.error("listProviderAppointments error", error); return res.status(500).json({ message: "Server Error" }); }
 };
 

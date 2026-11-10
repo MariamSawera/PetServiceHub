@@ -92,7 +92,7 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[var(--theme-bg)] px-6 py-10 md:px-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-[1400px]">
         <div className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-600">Your account</p>
           <h1 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">Profile settings</h1>
