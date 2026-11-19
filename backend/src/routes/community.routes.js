@@ -1,5 +1,6 @@
 import express from "express";
 import protectRoute from "../middleware/protectRoute.js";
+import { requireTenantMembership } from "../middleware/requireTenantMembership.js";
 import {
   createComment,
   createPost,
@@ -18,7 +19,7 @@ router.get("/posts", listPosts);
 router.get("/posts/:postId", getPost);
 router.get("/posts/:postId/comments", listComments);
 
-router.use(protectRoute);
+router.use(protectRoute, requireTenantMembership);
 router.post("/posts", createPost);
 router.patch("/posts/:postId", updatePost);
 router.patch("/posts/:postId/like", togglePostLike);

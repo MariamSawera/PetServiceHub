@@ -8,4 +8,6 @@ export const signup = (payload) => api.post('/api/auth/signup', payload);
 
 export const logout = () => api.post('/api/auth/logout');
 
+export const switchTenant = (tenantId) => api.post('/api/auth/switch-tenant', { tenantId });
+
 export const googleLoginUrl = `${api.defaults.baseURL}/api/auth/google`;

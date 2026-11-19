@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
+import TenantMembership from "../models/TenantMembership.js";
 
 passport.use(
   new GoogleStrategy(
@@ -33,6 +34,12 @@ passport.use(
 
           await user.save();
 
+          await TenantMembership.updateOne(
+            { userId: user._id, tenantId: req.tenantId },
+            { $setOnInsert: { userId: user._id, tenantId: req.tenantId, role: "user", isVerified: true, status: "active" } },
+            { upsert: true }
+          );
+
           return done(null, user);
         }
 
@@ -45,6 +52,14 @@ passport.use(
           isVerified: true,
           role: "user",
           tenantId: req.tenantId,
+        });
+
+        await TenantMembership.create({
+          userId: user._id,
+          tenantId: req.tenantId,
+          role: "user",
+          isVerified: true,
+          status: "active",
         });
 
         return done(null, user);

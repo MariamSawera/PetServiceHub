@@ -5,7 +5,15 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:clinics": "node src/scripts/seedClinics.js"
+    "seed:clinics": "node src/scripts/seedClinics.js",
+    "set-admin": "node src/scripts/setAdmin.js",
+    "set-platform-admin": "node src/scripts/setPlatformAdmin.js",
+    "membership-migration-report": "node src/scripts/generateMembershipMigrationReport.js",
+    "membership-migrate": "node src/scripts/migrateTenantMemberships.js",
+    "membership-migrate:dry-run": "node src/scripts/migrateTenantMemberships.js",
+    "membership-migrate:execute": "node src/scripts/migrateTenantMemberships.js --execute",
+    "verify-rbac-integrity": "node src/scripts/verifyRbacIntegrity.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",

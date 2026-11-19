@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   ChevronDown,
+  Globe2,
   Grid2X2,
   House,
   Info,
@@ -13,6 +14,7 @@ import {
   Menu,
   PawPrint,
   Search,
+  ShieldCheck,
   Stethoscope,
   UserRound,
   UsersRound,
@@ -51,10 +53,21 @@ const PROVIDER_LINKS = [
   { label: 'Contact', to: '/contact', icon: Mail },
 ];
 
+const ADMIN_LINKS = [
+  { label: 'Admin Panel', to: '/admin', icon: ShieldCheck },
+  { label: 'Profile', to: '/profile', icon: UserRound },
+];
+
+const PLATFORM_ADMIN_LINKS = [
+  { label: 'Platform', to: '/platform-admin', icon: Globe2 },
+  { label: 'Tenant Admin', to: '/admin', icon: ShieldCheck },
+  { label: 'Profile', to: '/profile', icon: UserRound },
+];
+
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { tenantSlug } = useTenant(); //removed , setTenantSlug
+  const { tenantSlug, setTenantSlug } = useTenant();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -117,8 +130,23 @@ export default function Navbar() {
 
   const visibleNotifications = user ? notifications : [];
   const visibleUnreadCount = user ? unreadCount : 0;
-  const visibleNavLinks = user?.role === 'provider' ? PROVIDER_LINKS : user ? USER_LINKS : GUEST_LINKS;
-  const displayName = user?.name || (user?.role === 'provider' ? 'Service provider' : 'User');
+  const visibleNavLinks = user?.role === 'provider'
+    ? PROVIDER_LINKS
+    : user?.role === 'platform_admin'
+      ? PLATFORM_ADMIN_LINKS
+    : user?.role === 'admin'
+      ? ADMIN_LINKS
+      : user
+        ? USER_LINKS
+        : GUEST_LINKS;
+  const displayName = user?.name
+    || (user?.role === 'provider'
+      ? 'Service provider'
+      : user?.role === 'platform_admin'
+        ? 'Platform administrator'
+        : user?.role === 'admin'
+          ? 'Administrator'
+          : 'User');
   const avatar = user ? profile?.avatar : undefined;
   const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
@@ -148,14 +176,14 @@ export default function Navbar() {
     setUnreadCount(0);
   };
 
-  const isProvider = user?.role === 'provider';
+  const isProvider = user?.tenantRole === 'provider' || user?.role === 'provider';
 
   return (
     <header className={`sticky top-0 z-50 border-b bg-white/95 backdrop-blur ${isProvider ? 'border-indigo-100' : 'border-teal-100'}`}>
       <div className="mx-auto flex min-h-[76px] max-w-[1400px] items-center justify-between gap-5 px-5 md:px-10">
         <Link to={isProvider ? '/provider/dashboard' : '/'} className="flex shrink-0 items-center gap-2.5">
           <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isProvider ? 'bg-indigo-100 text-indigo-600' : 'bg-teal-100 text-teal-700'}`}>
-            <img src={pawLogo} alt="" className="h-9 w-9 object-contain" />
+            <img src={localStorage.getItem('pawcareTenantLogo') || pawLogo} alt="" className="h-9 w-9 object-contain" />
           </span>
           <span className="hidden sm:block">
             <span className="block text-[19px] font-black tracking-tight text-slate-900">PetService<span className={isProvider ? 'text-indigo-600' : 'text-teal-600'}>Hub</span></span>
@@ -208,7 +236,7 @@ export default function Navbar() {
                   <span className="max-w-32 truncate text-xs font-bold text-slate-700">{displayName}</span>
                   <ChevronDown size={15} className="text-slate-500" />
                 </button>
-                {profileOpen && <ProfilePanel user={user} avatar={avatar} tenantSlug={tenantSlug}  onLogout={handleLogout} />}
+                {profileOpen && <ProfilePanel user={user} avatar={avatar} tenantSlug={tenantSlug} onTenantSwitch={setTenantSlug} onLogout={handleLogout} />}
               </div>
             </>
           ) : (
@@ -297,8 +325,8 @@ function Avatar({ avatar, initials, provider, small = false }) {
   return <span className={`flex ${small ? 'h-8 w-8' : 'h-9 w-9'} items-center justify-center rounded-full text-xs font-black text-white ${provider ? 'bg-indigo-500' : 'bg-teal-600'}`}>{initials}</span>;
 }
 
-function ProfilePanel({ user, avatar,tenantSlug,  onLogout }) { // onTenantChange,
-  const provider = user.role === 'provider';
+function ProfilePanel({ user, avatar, tenantSlug, onTenantSwitch, onLogout }) {
+  const provider = user.tenantRole === 'provider' || user.role === 'provider';
   const initials = (user.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   return (
     <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl shadow-slate-200/60">
@@ -318,15 +346,31 @@ function ProfilePanel({ user, avatar,tenantSlug,  onLogout }) { // onTenantChang
         </Link>
           {!provider && <Link to="/reminders" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><Bell size={16} /> Reminders</Link>}
         {!provider && <Link to="/pets" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700"><PawPrint size={16} /> My Pets</Link>}
-        {/* <button type="button" onClick={onTenantChange} className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-teal-700" title="Change workspace">
-          <span>Workspace</span><span className="max-w-24 truncate text-slate-400">{tenantSlug}</span>
-        </button> */}
-        <div className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold">
-  <span className="text-slate-600">Workspace</span>
-  <span className="max-w-28 truncate text-slate-400">
-  {user.tenant?.name || tenantSlug}
-  </span>
-</div>
+        {user.memberships?.length > 1 && (
+          <label className="mt-1 block rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">
+            <span className="mb-1.5 block">Workspace</span>
+            <select
+              value={tenantSlug}
+              onChange={async (event) => {
+                const result = await onTenantSwitch(event.target.value);
+                if (!result.ok) window.alert(result.message);
+              }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700"
+            >
+              {user.memberships.map((membership) => (
+                <option key={membership.tenant?._id} value={membership.tenant?.slug}>
+                  {membership.tenant?.name || membership.tenant?.slug} — {membership.role}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {(!user.memberships || user.memberships.length <= 1) && (
+          <div className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold">
+            <span className="text-slate-600">Workspace</span>
+            <span className="max-w-28 truncate text-slate-400">{user.tenant?.name || tenantSlug}</span>
+          </div>
+        )}
         <div className="my-1 border-t border-slate-100" />
         <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600">
           <LogOut size={16} /> Log out

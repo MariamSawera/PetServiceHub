@@ -9,5 +9,7 @@ export default function ProviderRoute() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  return user.role === 'provider' ? <Outlet /> : <Navigate to="/" replace />;
+  return user.tenantRole === 'provider' || user.role === 'provider'
+    ? <Outlet />
+    : <Navigate to="/" replace />;
 }

@@ -20,6 +20,9 @@ import communityRoutes from "./routes/community.routes.js";
 import { ensureDefaultTenant, resolveTenant } from "./middleware/tenantContext.js";
 import { migrateLegacyRecords } from "./services/tenantMigration.service.js";
 import tenantRoutes from "./routes/tenant.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import platformAdminRoutes from "./routes/platformAdmin.routes.js";
+import Tenant from "./models/Tenant.js";
 
 
 
@@ -30,8 +33,19 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
   credentials: true,
+  origin: async (origin, callback) => {
+    if (!origin) return callback(null, true);
+    try {
+      const url = new URL(origin);
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return callback(null, true);
+      const tenant = await Tenant.findOne({ $or: [{ customDomain: url.hostname }, { subdomain: url.hostname.split(".")[0] }], active: true, deletedAt: null });
+      if (tenant) return callback(null, true);
+      return callback(new Error("Origin not allowed by CORS"));
+    } catch {
+      return callback(new Error("Invalid CORS origin"));
+    }
+  },
 }));
 
 app.use(express.json());
@@ -48,6 +62,8 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/tenants", tenantRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/platform-admin", platformAdminRoutes);
 
 
 app.get("/api/health", (req, res) => {

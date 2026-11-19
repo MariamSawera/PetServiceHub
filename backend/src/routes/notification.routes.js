@@ -1,10 +1,11 @@
 import express from "express";
 import protectRoute from "../middleware/protectRoute.js";
+import { requireTenantMembership } from "../middleware/requireTenantMembership.js";
 import { listNotifications, markAllNotificationsRead, markNotificationRead } from "../controllers/notification.controller.js";
 
 const router = express.Router();
 
-router.use(protectRoute);
+router.use(protectRoute, requireTenantMembership);
 router.get("/", listNotifications);
 router.patch("/read-all", markAllNotificationsRead);
 router.patch("/:notificationId/read", markNotificationRead);

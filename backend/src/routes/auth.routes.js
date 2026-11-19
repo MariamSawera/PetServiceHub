@@ -8,6 +8,7 @@ import {
   getMe,
   googleAuth,
   googleCallback,
+  switchTenant,
 } from "../controllers/auth.controller.js";
 import protectRoute from "../middleware/protectRoute.js";
 import { signupValidator, loginValidator } from "../middleware/authValidators.js";
@@ -20,6 +21,7 @@ router.post("/signup", authRateLimiter, signupValidator, register);
 router.post("/login", authRateLimiter, loginValidator, login);
 
 router.post("/logout", logout);
+router.post("/switch-tenant", protectRoute, switchTenant);
 
 router.get("/me", protectRoute, getMe);
 

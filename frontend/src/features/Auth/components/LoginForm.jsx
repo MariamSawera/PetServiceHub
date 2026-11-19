@@ -37,7 +37,13 @@ export default function LoginForm() {
     try {
       setIsSubmitting(true);
       const loggedInUser = await login(form.email, form.password);
-      navigate(loggedInUser.role === 'provider' ? '/provider/dashboard' : '/');
+      navigate(loggedInUser.isPlatformAdmin || loggedInUser.role === 'platform_admin'
+        ? '/platform-admin'
+        : loggedInUser.tenantRole === 'tenant_admin' || loggedInUser.role === 'admin' || loggedInUser.role === 'tenant_admin'
+          ? '/admin'
+          : loggedInUser.tenantRole === 'provider' || loggedInUser.role === 'provider'
+            ? '/provider/dashboard'
+            : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

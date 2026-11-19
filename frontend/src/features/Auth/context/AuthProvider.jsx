@@ -21,6 +21,11 @@ export function AuthProvider({ children }) {
   const syncTenant = (userData) => {
     if (!userData?.tenant?.slug) return;
     localStorage.setItem('pawcareTenant', userData.tenant.slug);
+    const branding = userData.tenant.branding;
+    if (branding?.primaryColor) document.documentElement.style.setProperty('--tenant-primary', branding.primaryColor);
+    if (branding?.secondaryColor) document.documentElement.style.setProperty('--tenant-secondary', branding.secondaryColor);
+    if (branding?.logoUrl) localStorage.setItem('pawcareTenantLogo', branding.logoUrl);
+    else localStorage.removeItem('pawcareTenantLogo');
     window.dispatchEvent(new CustomEvent('tenant-updated', { detail: userData.tenant.slug }));
   };
 

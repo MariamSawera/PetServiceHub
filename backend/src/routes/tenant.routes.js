@@ -1,10 +1,10 @@
 import express from "express";
-import authorizeRoles from "../middleware/authorizeRoles.js";
 import protectRoute from "../middleware/protectRoute.js";
+import { requirePlatformAdmin } from "../middleware/requirePlatformAdmin.js";
 import { createTenant } from "../controllers/tenant.controller.js";
 
 const router = express.Router();
 
-router.post("/", protectRoute, authorizeRoles("admin"), createTenant);
+router.post("/", protectRoute, requirePlatformAdmin, createTenant);
 
 export default router;

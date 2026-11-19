@@ -120,9 +120,12 @@ Supported roles:
 
 - `user`
 - `provider`
-- `admin`
+- `tenant_admin`
+- `platform_admin`
 
-Provider routes require the `provider` role. Tenant creation requires the `admin` role.
+The legacy `admin` role is still accepted for migration compatibility by some authorization helpers, but new tenant authorization uses `TenantMembership.role = tenant_admin`.
+
+Platform privileges are checked independently through `PlatformRole`; Platform Admins do not automatically receive Provider or Tenant Admin privileges.
 
 #### Rate limiting
 
@@ -194,9 +197,27 @@ Tenant fields:
 - `name`
 - `slug`
 - `active`
+- `subdomain`
+- `customDomain`
+- `branding`
+- `deletedAt`
+- `deletedBy`
 - timestamps
 
 The slug is lowercase, unique, and restricted to letters, numbers, and hyphens.
+
+Subdomains and custom domains are optional and uniquely identify a tenant when configured. Active, deleted tenants are excluded from normal tenant resolution.
+
+### Tenant branding
+
+Tenant branding contains:
+
+- `logoUrl`
+- `primaryColor`
+- `secondaryColor`
+- `supportEmail`
+
+The frontend applies the active tenant branding where supported. Brand configuration is restricted to Platform Admin operations.
 
 ### Tenant ownership
 
@@ -223,10 +244,10 @@ POST /api/tenants
 Requirements:
 
 - Authentication required.
-- Admin role required.
+- Platform Admin role required.
 - Name and lowercase slug required.
 
-There is currently no frontend tenant administration page.
+Tenant Admins cannot create or delete tenants or configure platform-level domains and branding.
 
 ### Frontend workspace behavior
 
@@ -235,12 +256,115 @@ The frontend:
 - Stores the current tenant slug in local storage as `pawcareTenant`.
 - Uses `VITE_TENANT_SLUG` as an optional fallback.
 - Does not send the default slug header unnecessarily.
-- Displays the current slug in the desktop profile panel and mobile menu.
-- Allows manual workspace changes through the Navbar prompt.
-- Reloads after a manual workspace change.
+- Displays the current tenant in the profile panel.
+- Shows a workspace selector when the authenticated account has multiple active memberships.
+- Calls `POST /api/auth/switch-tenant` before changing the active workspace.
+- Reloads after a successful workspace switch.
 - Synchronizes automatically from authenticated user tenant metadata.
 
-Current tenant membership model: one user has one `tenantId`. There is no multi-tenant membership table yet.
+### Multi-Tenant Membership RBAC
+
+The authorization architecture separates account identity, tenant membership, and platform privileges.
+
+#### Global User
+
+`backend/src/models/User.js` represents the global account identity:
+
+- Name
+- Email
+- Password or Google identity
+- Account suspension state
+- Account verification state
+
+`User.tenantId` and `User.role` remain temporarily for migration compatibility. They are not authoritative for tenant authorization after migration.
+
+#### TenantMembership
+
+File: `backend/src/models/TenantMembership.js`
+
+A membership contains:
+
+- `userId`
+- `tenantId`
+- `role`: `user`, `provider`, or `tenant_admin`
+- `isVerified`
+- `status`: `active`, `suspended`, or `revoked`
+- `deletedAt`
+- `deletedBy`
+
+The unique compound index is `{ userId: 1, tenantId: 1 }`.
+
+One account can have a different role in different tenants. Membership suspension affects only that tenant.
+
+#### PlatformRole
+
+File: `backend/src/models/PlatformRole.js`
+
+Platform privileges are stored independently:
+
+- `userId`
+- `role: platform_admin`
+
+Platform Admin status does not grant Tenant Admin or Provider privileges in a tenant.
+
+#### Request authorization flow
+
+Protected tenant requests pass through:
+
+1. JWT verification.
+2. User loading.
+3. Account suspension check.
+4. Tenant resolution.
+5. Tenant active/deleted status check.
+6. `TenantMembership` lookup for the user and tenant.
+7. Membership status check.
+8. Independent `PlatformRole` lookup.
+9. Attachment of authorization context to `req`.
+
+Request context includes:
+
+- `req.user`
+- `req.tenant`
+- `req.tenantId`
+- `req.membership`
+- `req.tenantRole`
+- `req.platformRole`
+- `req.isPlatformAdmin`
+
+Database membership records are authoritative. JWT role and tenant claims are not authorization proof.
+
+#### Centralized authorization middleware
+
+The membership architecture uses:
+
+- `protectRoute.js`
+- `requireTenantMembership.js`
+- `requireTenantRole.js`
+- `requirePlatformAdmin.js`
+- `authorizeRoles.js`
+- `permission.service.js`
+
+#### Tenant switching
+
+Endpoint:
+
+```text
+POST /api/auth/switch-tenant
+```
+
+The backend validates authentication, account suspension, target tenant existence/status, and active membership. It then issues a refreshed JWT and returns the active tenant and membership role.
+
+#### Role assignment and suspension
+
+Tenant Admins can assign `user`, `provider`, and `tenant_admin` roles within their tenant, verify users, and suspend or revoke memberships. They cannot modify their own membership or remove the last active Tenant Admin.
+
+Platform Admins can assign tenant and platform roles, reassign memberships, suspend/reactivate accounts, and suspend/reactivate/revoke memberships.
+
+#### Audit logging
+
+File: `backend/src/models/AuditLog.js`
+
+Audit logs record the actor, action, target, tenant, details, IP address, user agent, and timestamp. Tenant Admins receive tenant-scoped logs; Platform Admins receive platform-wide logs.
 
 ## 6. Complete Backend API Reference
 
@@ -480,10 +604,32 @@ File: `backend/src/models/User.js`
 - Name
 - Email
 - Password for local accounts
-- Tenant ID
-- Role
+- Legacy tenant ID and role fields retained for migration compatibility
+- Account suspension state
 - Email verification state
 - Google OAuth ID/provider
+- Timestamps
+
+Tenant-specific roles are now read from `TenantMembership`; Platform Admin privileges are read from `PlatformRole`.
+
+### TenantMembership
+
+File: `backend/src/models/TenantMembership.js`
+
+- User reference
+- Tenant reference
+- Tenant role
+- Membership verification state
+- Membership status
+- Soft-deletion fields
+- Timestamps
+
+### PlatformRole
+
+File: `backend/src/models/PlatformRole.js`
+
+- User reference
+- Platform role
 - Timestamps
 
 ### Tenant
@@ -493,6 +639,10 @@ File: `backend/src/models/Tenant.js`
 - Name
 - Unique slug
 - Active flag
+- Subdomain
+- Custom domain
+- Branding
+- Soft-deletion fields
 - Timestamps
 
 ### Profile
@@ -752,6 +902,24 @@ Provider routes are protected by `ProviderRoute`. Admins do not currently have a
 
 Providers intentionally do not see the user-facing Find a vet and Services links in their main navigation.
 
+### Tenant Admin
+
+- `/admin`
+- Tenant-scoped dashboard and statistics
+- Tenant user and membership management
+- Tenant clinic, appointment, review, and community moderation
+- Tenant audit logs
+
+### Platform Admin
+
+- `/platform-admin`
+- Cross-tenant dashboard and statistics
+- Tenant creation, editing, activation, and deletion
+- Domain and branding configuration
+- Cross-tenant user, membership, clinic, and community management
+- Account and membership suspension
+- Platform audit logs
+
 ## 11. Environment Configuration
 
 Backend `.env`:
@@ -827,6 +995,11 @@ Other scripts:
 cd backend
 npm start
 npm run seed:clinics
+npm run membership-migration-report
+npm run membership-migrate:dry-run
+npm run membership-migrate:execute
+npm run verify-rbac-integrity
+npm test
 ```
 
 ## 13. Security and Data Isolation
@@ -836,6 +1009,14 @@ Current controls:
 - HTTP-only JWT cookie.
 - Password hashing with bcrypt.
 - Email verification for local accounts.
+- Global account suspension checked on authentication.
+- TenantMembership status and role checked on tenant-protected requests.
+- PlatformRole checked independently on platform-admin routes.
+- JWT role claims are not used for authorization.
+- Active and deleted tenant status is checked during tenant resolution.
+- Tenant switching requires backend membership verification.
+- Tenant Admin self-role changes and last-admin removal are protected.
+- Platform and tenant audit logs record administrative actions.
 - Tenant ID included on tenant-owned records.
 - Tenant filtering in controller queries.
 - Provider ownership checks for clinics and appointments.
@@ -849,9 +1030,11 @@ Current controls:
 
 ### Product limitations
 
-- One tenant per user; no membership table for multiple workspaces.
-- No tenant administration UI.
-- No admin frontend dashboard.
+- Legacy `User.role` and `User.tenantId` remain temporarily for migration compatibility; membership records are authoritative.
+- Automated cross-tenant, stale-token, and privilege-escalation HTTP integration tests should be expanded before production.
+- Complex cross-record deletion and reassignment may not use MongoDB transactions in standalone deployments.
+- Custom-domain TLS and DNS provisioning are configuration features only; certificate issuance is external.
+- Soft deletion is implemented selectively for tenants and memberships; not every tenant-owned resource has full archival behavior.
 - No SMS or push notification provider integration.
 - Email notifications require SMTP credentials.
 - Certificate upload is currently image-based; PDF upload is not supported.
@@ -911,13 +1094,13 @@ Current controls:
 
 ## 16. Recommended Next Improvements
 
-1. Add a tenant membership model and tenant switcher based on allowed memberships.
-2. Add an admin tenant and user management interface.
+1. Add HTTP integration tests for cross-tenant access, stale JWTs, forged roles, suspended accounts, duplicate memberships, and privilege escalation.
+2. Remove deprecated `User.role` and `User.tenantId` fields after the compatibility period.
 3. Move API base URL and OAuth callback URLs to environment variables.
 4. Add server-side upload size, MIME, and image dimension validation.
 5. Add appointment availability and conflict prevention.
 6. Add a durable background job system for reminders and email delivery.
 7. Add PDF certificate support with secure file validation.
 8. Add SMS and push delivery through configured providers.
-9. Add integration tests for tenant isolation and provider notification routing.
-10. Replace remaining home page mock data with API-backed data.
+9. Replace remaining home page mock data with API-backed data.
+10. Add optional MongoDB transaction support for cross-record tenant deletion and reassignment.

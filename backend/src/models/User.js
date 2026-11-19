@@ -29,8 +29,15 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "provider", "admin"],
+      enum: ["user", "provider", "admin", "tenant_admin", "platform_admin"],
       default: "user",
+    },
+
+    // Deprecated after TenantMembership migration. Keep temporarily for compatibility.
+    suspended: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
 
     // Email verification

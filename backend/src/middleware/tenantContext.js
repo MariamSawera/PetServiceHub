@@ -13,6 +13,21 @@ const tenantSlugFromRequest = (req) => {
   return DEFAULT_TENANT_SLUG;
 };
 
+const tenantForHost = async (req) => {
+  const host = req.get("host")?.split(":")[0]?.toLowerCase();
+  if (!host) return null;
+
+  const customTenant = await Tenant.findOne({ customDomain: host, active: true, deletedAt: null });
+  if (customTenant) return customTenant;
+
+  const baseHost = process.env.TENANT_BASE_DOMAIN?.toLowerCase();
+  if (baseHost && host.endsWith(`.${baseHost}`)) {
+    const subdomain = host.slice(0, -(baseHost.length + 1));
+    return Tenant.findOne({ $or: [{ subdomain }, { slug: subdomain }], active: true, deletedAt: null });
+  }
+  return null;
+};
+
 export const resolveTenant = async (req, res, next) => {
   try {
     const headerSlug = req.get("x-tenant-slug");
@@ -20,19 +35,20 @@ export const resolveTenant = async (req, res, next) => {
     let tenant;
 
     if (headerSlug) {
-      tenant = await Tenant.findOne({ slug: headerSlug.toLowerCase(), active: true });
+      tenant = await Tenant.findOne({ slug: headerSlug.toLowerCase(), active: true, deletedAt: null });
     } else {
       const token = req.cookies?.jwt || req.headers.authorization?.replace(/^Bearer\s+/i, "");
       if (token) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          tenant = await Tenant.findOne({ _id: decoded.tenantId, active: true });
+          tenant = await Tenant.findOne({ _id: decoded.tenantId, active: true, deletedAt: null });
         } catch {
           tenant = null;
         }
       }
 
-      if (!tenant) tenant = await Tenant.findOne({ slug: tenantSlugFromRequest(req), active: true });
+      if (!tenant) tenant = await tenantForHost(req);
+      if (!tenant) tenant = await Tenant.findOne({ slug: tenantSlugFromRequest(req), active: true, deletedAt: null });
     }
 
     if (!tenant) return res.status(404).json({ message: "Tenant not found" });

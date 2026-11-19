@@ -21,6 +21,10 @@ import ContactPage from '../features/Contact/pages/ContactPage';
 import ServicesPage from '../features/Services/pages/ServicesPage';
 import CommunityPage from '../features/Community/pages/CommunityPage';
 import RemindersPage from '../features/Pets/pages/RemindersPage';
+import AdminRoute from '../components/routing/AdminRoute';
+import AdminDashboardPage from '../features/Admin/pages/AdminDashboardPage';
+import PlatformAdminPage from '../features/Admin/pages/PlatformAdminPage';
+import PlatformAdminRoute from '../components/routing/PlatformAdminRoute';
 
 export default function AppRoutes() {
 	return (
@@ -34,6 +38,12 @@ export default function AppRoutes() {
 			<Route path="/contact" element={<ContactPage />} />
 			<Route path="/services" element={<ServicesPage />} />
 			<Route path="/community" element={<CommunityPage />} />
+			<Route element={<AdminRoute />}>
+				<Route path="/admin/*" element={<AdminDashboardPage />} />
+			</Route>
+			<Route element={<PlatformAdminRoute />}>
+				<Route path="/platform-admin" element={<PlatformAdminPage />} />
+			</Route>
 			<Route element={<ProtectedRoute />}>
 				<Route path="/profile" element={<ProfilePage />} />
 				<Route element={<ProviderRoute />}>

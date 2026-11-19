@@ -1,5 +1,6 @@
 import express from "express";
 import protectRoute from "../middleware/protectRoute.js";
+import { requireTenantMembership } from "../middleware/requireTenantMembership.js";
 import {
   createPet,
   deletePet,
@@ -14,7 +15,7 @@ import {
 
 const router = express.Router();
 
-router.use(protectRoute);
+router.use(protectRoute, requireTenantMembership);
 router.get("/", listPets);
 router.post("/", createPet);
 router.get("/:petId/vaccinations", listVaccinations);
