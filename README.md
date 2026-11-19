@@ -13,12 +13,13 @@ Project members:
 - MariamSawera
 - Syeda Summaiya
 
-The project is currently approximately half complete. Planned work includes:
+The project is under active development. Planned work includes:
 
 - Further UI and user-experience improvements
 - Backend support for the Contact page
 - AI symptom checker
-- Optional tenant membership support for users belonging to multiple tenants
+- Additional automated cross-tenant security tests
+- Removal of legacy `User.role` and `User.tenantId` fields after migration verification
 - Production deployment
 
 ## Features
@@ -32,6 +33,8 @@ The project is currently approximately half complete. Planned work includes:
 - Dedicated vaccination reminders, recurring schedules, dose tracking, certificate images, and clinic/provider links
 - Appointment booking, cancellation, provider status updates, and verified reviews
 - Community posts and comments with protected interactions
+- Tenant membership for multiple tenants and tenant-specific roles
+- Tenant Admin, Platform Admin, membership suspension, and audit-log dashboards
 - In-app notifications and API/authentication rate limiting
 - About, Contact, Services, and Community public pages
 
@@ -124,7 +127,19 @@ The API runs at `http://localhost:5000` and the frontend at `http://localhost:51
 
 Health check: `http://localhost:5000/api/health`
 
-On startup, the backend creates the default tenant and migrates legacy records without a `tenantId` into it. Complete this migration before deploying multiple production tenants.
+On startup, the backend creates the default tenant and migrates legacy records without a `tenantId` into it.
+
+Before deploying the membership system to another database:
+
+```bash
+cd backend
+npm run membership-migration-report
+npm run membership-migrate:dry-run
+npm run membership-migrate:execute
+npm run verify-rbac-integrity
+```
+
+Create a database backup before running an execute migration. The migration script is idempotent and does not merge duplicate email accounts automatically.
 
 ## Scripts
 
@@ -134,6 +149,11 @@ Backend:
 npm run dev
 npm start
 npm run seed:clinics
+npm test
+npm run membership-migration-report
+npm run membership-migrate:dry-run
+npm run membership-migrate:execute
+npm run verify-rbac-integrity
 ```
 
 Frontend:
@@ -151,13 +171,37 @@ npm run preview
 POST /api/auth/signup
 POST /api/auth/login
 POST /api/auth/logout
+POST /api/auth/switch-tenant
 GET  /api/auth/me
 GET  /api/auth/verify-email/:token
 GET  /api/auth/google
 GET  /api/auth/google/callback
 ```
 
-Supported roles are `user`, `provider`, and `admin`. Users manage pets and bookings. Providers manage their clinics and appointments. Admins can provision tenants through `POST /api/tenants`.
+Supported tenant roles are:
+
+| Role | Scope |
+|---|---|
+| `user` | Pets, appointments, profile, reviews, and community |
+| `provider` | Own clinics and clinic appointments |
+| `tenant_admin` | Users and moderation within one tenant |
+| `platform_admin` | Entire platform; independent of tenant membership |
+
+A user can belong to multiple tenants with a different role in each tenant. Tenant-specific roles are stored in `TenantMembership`. Platform Admin privileges are stored in `PlatformRole`.
+
+Tenant Admin dashboard: `http://localhost:5173/admin`
+
+Platform Admin dashboard: `http://localhost:5173/platform-admin`
+
+Promote an existing account:
+
+```bash
+cd backend
+npm run set-admin -- account@example.com default
+npm run set-platform-admin -- account@example.com default
+```
+
+Log out and log in again after changing an account role.
 
 ## Tenant Architecture
 
@@ -171,7 +215,7 @@ Tenant resolution uses:
 
 Every tenant-owned controller query includes `tenantId`. Cross-tenant clinic, pet, appointment, review, notification, post, and comment access is rejected or returns not found.
 
-Create a tenant as an authenticated admin:
+Create a tenant as an authenticated Platform Admin:
 
 ```text
 POST /api/tenants
@@ -184,7 +228,48 @@ POST /api/tenants
 }
 ```
 
-The current model assigns one tenant to each user through `User.tenantId`. A future `TenantMembership` model can support users belonging to multiple tenants with different roles per tenant.
+Tenant resolution uses a slug header, subdomain, custom domain, JWT tenant context, or default tenant fallback. Backend authorization also verifies that the user has an active `TenantMembership` for the selected tenant.
+
+Use `/api/auth/switch-tenant` to switch workspaces. Platform Admin switching does not automatically grant Provider or Tenant Admin privileges in the selected tenant.
+
+## Admin and Membership APIs
+
+Tenant Admin API:
+
+```text
+GET   /api/admin/overview
+GET   /api/admin/users
+PATCH /api/admin/users/:userId
+GET   /api/admin/clinics
+DELETE /api/admin/clinics/:clinicId
+GET   /api/admin/appointments
+PATCH /api/admin/appointments/:appointmentId
+GET   /api/admin/reviews
+DELETE /api/admin/reviews/:reviewId
+GET   /api/admin/posts
+DELETE /api/admin/posts/:postId
+GET   /api/admin/audit-logs
+```
+
+Platform Admin API:
+
+```text
+GET    /api/platform-admin/overview
+GET    /api/platform-admin/tenants
+POST   /api/platform-admin/tenants
+PATCH  /api/platform-admin/tenants/:tenantId
+DELETE /api/platform-admin/tenants/:tenantId
+GET    /api/platform-admin/users
+PATCH  /api/platform-admin/users/:userId
+PATCH  /api/platform-admin/users/:userId/account-status
+GET    /api/platform-admin/memberships
+PATCH  /api/platform-admin/memberships/:membershipId/status
+GET    /api/platform-admin/clinics
+DELETE /api/platform-admin/clinics/:clinicId
+GET    /api/platform-admin/posts
+DELETE /api/platform-admin/posts/:postId
+GET    /api/platform-admin/audit-logs
+```
 
 ## Clinics and Providers
 
@@ -282,6 +367,8 @@ The frontend page is `/community`. Guests can browse and are prompted to sign up
 /profile           Protected profile
 /pets              Protected pet management
 /appointments      Protected appointment history
+/admin             Tenant Admin dashboard
+/platform-admin    Platform Admin dashboard
 ```
 
 ## Rate Limiting
@@ -322,4 +409,9 @@ Change or remove these credentials before deployment.
 - Use HTTPS and secure cookies in production.
 - Use separate development and production credentials.
 - Keep tenant filtering on every tenant-owned read, write, update, delete, and aggregate query.
+- Authorization uses active `TenantMembership` records and independent `PlatformRole` records.
+- Account suspension blocks all tenant access. Membership suspension or revocation blocks access to only that tenant.
+- Protect Tenant Admin role changes: Tenant Admins cannot change their own membership role or remove the last active Tenant Admin.
+- Do not trust JWT role claims or frontend tenant selections for authorization.
+- Preserve audit logs and exclude passwords, tokens, and secrets from audit details.
 - Do not rely on hidden frontend links for authorization; enforce roles and tenant membership in the backend.
